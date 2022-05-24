@@ -1,0 +1,21 @@
+WGS84 Knotenpunkte
+
+transformieren zu EPSG:3857 (WEB Mercator)
+
+besser: Stereographische Projektion
+
+
+Radius der Erde r = 6371 km = 6371000 m = 637 100 000 cm
+
+
+Rasterung Erstmal 1px = 1 qcm
+
+WGS84->radians->Kugelkoordinaten->Projektion->Polarkoordinaten->Kartesische Koordinaten
+
+
+Ablauf:
+
+1. 	Projektionspunkt O ist Erdmitte
+	Ebenen Auflagepunkt B ist Mitte der Karte:
+	1a.	min(lat) + Range(min(lat),max(lat))/2
+	1b.	min(lon) + Range(min(lon),max(lon))/2
