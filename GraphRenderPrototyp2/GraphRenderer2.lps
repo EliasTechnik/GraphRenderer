@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CONFIG>
+  <ProjectSession>
+    <PathDelim Value="\"/>
+    <Version Value="11"/>
+    <BuildModes Active="Default"/>
+    <Units Count="4">
+      <Unit0>
+        <Filename Value="GraphRenderer2.lpr"/>
+        <IsPartOfProject Value="True"/>
+        <TopLine Value="13"/>
+        <CursorPos X="40" Y="50"/>
+        <UsageCount Value="20"/>
+        <Loaded Value="True"/>
+      </Unit0>
+      <Unit1>
+        <Filename Value="lib\jsontools.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="JsonTools"/>
+        <EditorIndex Value="1"/>
+        <CursorPos X="36" Y="17"/>
+        <UsageCount Value="20"/>
+        <Loaded Value="True"/>
+      </Unit1>
+      <Unit2>
+        <Filename Value="tgraph.pas"/>
+        <UnitName Value="tGraph"/>
+        <EditorIndex Value="-1"/>
+        <CursorPos X="5"/>
+        <UsageCount Value="20"/>
+      </Unit2>
+      <Unit3>
+        <Filename Value="unit_graph.pas"/>
+        <IsPartOfProject Value="True"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="2"/>
+        <TopLine Value="89"/>
+        <CursorPos X="73" Y="111"/>
+        <UsageCount Value="20"/>
+        <Loaded Value="True"/>
+      </Unit3>
+    </Units>
+    <JumpHistory Count="18" HistoryIndex="17">
+      <Position1>
+        <Filename Value="GraphRenderer2.lpr"/>
+        <Caret Line="48" Column="14" TopLine="38"/>
+      </Position1>
+      <Position2>
+        <Filename Value="GraphRenderer2.lpr"/>
+        <Caret Line="10" Column="35"/>
+      </Position2>
+      <Position3>
+        <Filename Value="unit_graph.pas"/>
+        <Caret Line="36" Column="22" TopLine="4"/>
+      </Position3>
+      <Position4>
+        <Filename Value="unit_graph.pas"/>
+        <Caret Line="38" Column="20" TopLine="4"/>
+      </Position4>
+      <Position5>
+        <Filename Value="unit_graph.pas"/>
+        <Caret Line="39" Column="14" TopLine="4"/>
+      </Position5>
+      <Position6>
+        <Filename Value="unit_graph.pas"/>
+        <Caret Line="37" Column="17" TopLine="4"/>
+      </Position6>
+      <Position7>
+        <Filename Value="unit_graph.pas"/>
+        <Caret Line="35" Column="11" TopLine="4"/>
+      </Position7>
+      <Position8>
+        <Filename Value="unit_graph.pas"/>
+        <Caret Line="39" Column="30" TopLine="4"/>
+      </Position8>
+      <Position9>
+        <Filename Value="unit_graph.pas"/>
+        <Caret Line="38" Column="25" TopLine="5"/>
+      </Position9>
+      <Position10>
+        <Filename Value="unit_graph.pas"/>
+        <Caret Line="44" Column="20" TopLine="5"/>
+      </Position10>
+      <Position11>
+        <Filename Value="unit_graph.pas"/>
+        <Caret Line="52" Column="17" TopLine="31"/>
+      </Position11>
+      <Position12>
+        <Filename Value="unit_graph.pas"/>
+        <Caret Line="70" Column="27" TopLine="37"/>
+      </Position12>
+      <Position13>
+        <Filename Value="unit_graph.pas"/>
+        <Caret Line="45" Column="48" TopLine="25"/>
+      </Position13>
+      <Position14>
+        <Filename Value="GraphRenderer2.lpr"/>
+        <Caret Line="50" Column="40" TopLine="13"/>
+      </Position14>
+      <Position15>
+        <Filename Value="unit_graph.pas"/>
+        <Caret Line="108" Column="19" TopLine="83"/>
+      </Position15>
+      <Position16>
+        <Filename Value="unit_graph.pas"/>
+        <Caret Line="113" Column="76" TopLine="91"/>
+      </Position16>
+      <Position17>
+        <Filename Value="unit_graph.pas"/>
+        <Caret Line="111" Column="35" TopLine="91"/>
+      </Position17>
+      <Position18>
+        <Filename Value="unit_graph.pas"/>
+        <Caret Line="110" Column="105" TopLine="90"/>
+      </Position18>
+    </JumpHistory>
+    <RunParams>
+      <FormatVersion Value="2"/>
+      <Modes Count="2" ActiveMode="loadFile">
+        <Mode0 Name="default">
+          <local>
+            <CommandLineParams Value="-l"/>
+          </local>
+        </Mode0>
+        <Mode1 Name="loadFile">
+          <local>
+            <CommandLineParams Value="-l test_data/default.json"/>
+          </local>
+        </Mode1>
+      </Modes>
+    </RunParams>
+  </ProjectSession>
+</CONFIG>
