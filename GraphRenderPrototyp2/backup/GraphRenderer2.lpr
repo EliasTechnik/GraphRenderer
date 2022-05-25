@@ -26,6 +26,7 @@ type
 procedure TGraphRenderer.DoRun;
 var
   ErrorMsg: String;
+  prog:tgraph;
 begin
   // quick check parameters
   ErrorMsg:=CheckOptions('h', 'help');
@@ -45,7 +46,9 @@ begin
 
   if HasOption('l', 'loadfile') then begin
     WriteLn('Loading JSON...');
-
+    prog:=tgraph.create();
+    prog.loadFromJSONFile(paramStr(2));
+    //prog.renderImageToFile('testimage.png');
 
 
     //wait to show output

@@ -48,6 +48,7 @@ begin
     WriteLn('Loading JSON...');
     prog:=tgraph.create();
     prog.loadFromJSONFile(paramStr(2));
+    prog.renderImageToFile('testimage.png');
 
 
     //wait to show output
