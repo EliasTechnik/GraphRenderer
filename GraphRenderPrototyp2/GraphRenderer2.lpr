@@ -48,8 +48,8 @@ begin
     WriteLn('Loading JSON...');
     prog:=tgraph.create();
     prog.loadConfigFromJSON('config.json');
-    //prog.loadFromJSONFile(paramStr(2));
-    //prog.renderImageToFile('testimage.png');
+    prog.loadFromJSONFile(paramStr(2));
+    prog.renderImageToFile('testimage.png');
 
 
     //wait to show output

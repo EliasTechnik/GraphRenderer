@@ -56,7 +56,7 @@ function gpsTo3d(gps:twgs84; r:double):t3d;          //converts WGS84 to 3d Cart
 function get3dOnPlane(ray:tray; plane:t3D):t3d;                     //projects ray on plane and returns Intersection with plane
 function genPlane(p:t3d):t3d;                                       //generates Tangential Plane at Point p (It assumes that the Ball has its center at (0,0,0)
 function invertPoint(p:tsphere):tsphere;                            //invertiert p
-
+function getRay(a:t3d;b:t3d):tray;
 
 type
 
@@ -64,16 +64,27 @@ type
 
  tGraphNode=class
   private
-    gps:tWGS84;
-    pointZero:tWGS84;
-    xy:tcarthesian;
-    id:longint;
+    igps:tWGS84;
+    i2d:tcarthesian;
+    i3d:t3d;
+    iid:longint;
+    iprojected:boolean;
+    function get_2d: tcarthesian;
+    function get_3d: t3d;
+    function get_gps: twgs84;
+    function get_id: longint;
+    function get_projected: boolean;
+    procedure set_2d(AValue: tcarthesian);
+    procedure set_3d(AValue: t3d);
+    procedure set_gps(AValue: twgs84);
   public
     constructor create(_id:longint;_gps:tWGS84);
-    function get_carthesian:tcarthesian;
-    function get_gps:tWGS84;
-    procedure convert_to_carthesian;
-    procedure set_pointzero(_pointZero:twgs84);
+    property gps:twgs84 read get_gps write set_gps;
+    property p2d:tcarthesian read get_2d write set_2d;
+    property p3d:t3d read get_3d write set_3d;
+    property projected:boolean read get_projected;
+    property ID:longint read get_id;
+    procedure project(plane:t3d;base:t3d;r:double);
 end;
 
 type
@@ -83,8 +94,7 @@ type
  tGraph=class
   private
     ways:tlist;
-    upper_left_offset:tcarthesian;
-    lower_right_offset:tcarthesian;
+    edge:array[0..3] of t3d;
     origin:twgs84;
     base:t3d;
     plane:t3d;
@@ -102,20 +112,18 @@ type
 
  tWay=class
   private
-    id:longint;
-    nodes:tlist;
-    surface:tsurface;
-    width:double;
-    maxspeed:double;
-    offset:tcarthesian;
+    iid:longint;
+    inodes:tlist;
+    isurface:tsurface;
+    iwidth:double;
+    imaxspeed:double;
+    function get_Node(index:integer): tGraphNode;
   public
     constructor create(_id:longint);
     procedure add_node(_node:tGraphNode);
     function paint(c:TFPCustomCanvas):TFPCustomCanvas;
-    function get_minGPS:tWGS84;
-    function get_maxGPS:tWGS84;
-    procedure set_pointZero(_pz:twgs84);
-    procedure set_offset(o:tcarthesian);
+    property Nodes[index:integer]:tGraphNode read get_Node;
+    function Count:integer;
 end;
 
 implementation
@@ -125,8 +133,8 @@ begin
   result.azimuthalangle:=gps.lon;
   result.polarangle:=90-gps.lat;
   result.radius:=r;
-  Writeln('gpsToSphere: Azimuth: '+floattostr(result.azimuthalangle)
-  +'° Polar: '+floattostr(result.polarangle)+'° r: '+floattostr(result.radius));
+  //Writeln('gpsToSphere: Azimuth: '+floattostr(result.azimuthalangle)
+  //+'° Polar: '+floattostr(result.polarangle)+'° r: '+floattostr(result.radius));
 end;
 
 function sphereTo3d(p: tsphere): t3d;
@@ -134,7 +142,7 @@ begin
   result.x:=p.radius*sin(p.polarangle)*cos(p.azimuthalangle);
   result.y:=p.radius*sin(p.polarangle)*sin(p.azimuthalangle);
   result.z:=p.radius*cos(p.polarangle);
-  Writeln('sphereTo3d: ('+floattostr(result.x)+'|'+floattostr(result.y)+'|'+floattostr(result.z)+')');
+  //Writeln('sphereTo3d: ('+floattostr(result.x)+'|'+floattostr(result.y)+'|'+floattostr(result.z)+')');
 end;
 
 function gpsTo3d(gps: twgs84; r: double): t3d;
@@ -173,17 +181,30 @@ begin
  result.radius:=p.radius;
 end;
 
+function getRay(a: t3d; b: t3d): tray;
+begin
+  result.origin:=a;
+  result.direction.x:=a.x-b.x;
+  result.direction.y:=a.y-b.y;
+  result.direction.z:=a.z-b.z;
+end;
+
 { tWay }
+
+function tWay.get_Node(index: integer): tGraphNode;
+begin
+  result:=tGraphNode(inodes.Items[index]);
+end;
 
 constructor tWay.create(_id: longint);
 begin
-  id:=_id;
-  nodes:=tlist.Create;
+  iid:=_id;
+  inodes:=tlist.Create;
 end;
 
 procedure tWay.add_node(_node: tGraphNode);
 begin
-  nodes.Add(_node);
+  inodes.Add(_node);
 end;
 
 function tWay.paint(c: TFPCustomCanvas): TFPCustomCanvas;
@@ -192,11 +213,11 @@ var points:array of tpoint;
     i:integer;
 begin
 //get array of points (tpoint)
-  setlength(points,nodes.Count);
-  for i:=0 to nodes.count-1 do begin
-    xy:=tgraphnode(nodes.Items[i]).get_carthesian;
+  setlength(points,inodes.Count);
+  for i:=0 to inodes.count-1 do begin
+    xy:=tgraphnode(inodes.Items[i]).get_2d;
     //points[i]:=tpoint.Create(xy.x-offset.x,xy.y-offset.y);
-    Writeln('Way '+inttostr(id)+' has point at x: '+inttostr(points[i].X)+' y: '+inttostr(points[i].Y));
+    Writeln('Way '+inttostr(iid)+' has point at x: '+inttostr(points[i].X)+' y: '+inttostr(points[i].Y));
   end;
   //setup pen
    with c do
@@ -212,46 +233,11 @@ begin
   result:=c;
 end;
 
-function tWay.get_minGPS: tWGS84;
-var i:integer;
-    min_gps,gps:twgs84;
+function tWay.Count: integer;
 begin
-  //gen PointZero
-  min_gps:=tgraphnode(nodes.Items[0]).get_gps;
-  for i:=0 to nodes.count-1 do begin
-    gps:=tgraphnode(nodes.Items[i]).get_gps;
-    if gps.lon < min_gps.lon then min_gps.lon:=gps.lon;
-    if gps.lat < min_gps.lat then min_gps.lat:=gps.lat;
-  end;
-  result:=min_gps;
+  result:=inodes.Count;
 end;
 
-function tWay.get_maxGPS: tWGS84;
-var i:integer;
-    max_gps,gps:twgs84;
-begin
-  //gen PointZero
-  max_gps:=tgraphnode(nodes.Items[0]).get_gps;
-  for i:=0 to nodes.count-1 do begin
-    gps:=tgraphnode(nodes.Items[i]).get_gps;
-    if gps.lon > max_gps.lon then max_gps.lon:=gps.lon;
-    if gps.lat > max_gps.lat then max_gps.lat:=gps.lat;
-  end;
-  result:=max_gps;
-end;
-
-procedure tWay.set_pointZero(_pz: twgs84);
-var i:integer;
-begin
-  for i:=0 to nodes.count-1 do begin
-    tgraphnode(nodes.items[i]).set_pointzero(_pz);
-  end;
-end;
-
-procedure tWay.set_offset(o: tcarthesian);
-begin
-  offset:=o;
-end;
 
 { tGraph }
 
@@ -286,50 +272,32 @@ begin
         //TODO: parse tag (surface, width, maxspeed
         ways.Add(w);
      end;
-     //gen PointZero
-     pz_min:=tway(ways.items[0]).get_minGPS;
-     pz_max:=tway(ways.items[0]).get_maxGPS;
-     for wi:=0 to ways.count-1 do begin
-      wgs84:=tway(ways.items[wi]).get_minGPS;
-      if wgs84.lon < pz_min.lon then pz_min.lon:=wgs84.lon;
-      if wgs84.lat < pz_min.lat then pz_min.lat:=wgs84.lat;
-
-      wgs84:=tway(ways.items[wi]).get_maxGPS;
-      //writeln(floattostr(wgs84.lon));
-      if wgs84.lon > pz_max.lon then pz_max.lon:=wgs84.lon;
-      if wgs84.lat > pz_max.lat then pz_max.lat:=wgs84.lat;
-     end;
-     pz.lon:=pz_min.lon+(pz_max.lon-pz_min.lon)/2;
-     pz.lat:=pz_min.lat+(pz_max.lat-pz_min.lat)/2;
-     writeln('PointZero has lat: '+floattostr(pz.lat)+' and lon: '+floattostr(pz.lon));
-     ul:=tgraphnode.create(0,pz_min);
-     lr:=tgraphnode.create(0,pz_max);
-     ul.set_pointzero(pz);
-     lr.set_pointzero(pz);
-     upper_left_offset:=ul.get_carthesian;
-     lower_right_offset:=lr.get_carthesian;
-     //writeln('Upper Left Corner: '+inttostr(upper_left_offset.x)+'|'+inttostr(upper_left_offset.y));
-     //writeln('Lower Right Corner: '+inttostr(lower_right_offset.x)+'|'+inttostr(lower_right_offset.y));
-     for wi:=0 to ways.count-1 do begin
-      tway(ways.items[wi]).set_pointZero(pz);
-      tway(ways.items[wi]).set_offset(upper_left_offset);
-     end;
   end;
-
 end;
 
 procedure tGraph.renderImageToFile(path: string);
 var
-    i,x,y:integer;
+    i,j,x,y:integer;
+    w:tway;
     canvas : TFPCustomCanvas;
     image : TFPCustomImage;
     writer : TFPCustomImageWriter;
 begin
- // x:=lower_right_offset.x-upper_left_offset.x;
- // y:=lower_right_offset.y-upper_left_offset.y;
+  //generate 3d coordiantes
+  for i:=0 to ways.Count-1 do begin
+   w:=tway(ways.Items[i]);
+   for j:=0 to w.Count-1 do begin
+    w.get_Node(j).project(plane,base,radius);
+   end;
+  end;
+  //gather edges
+
+  //project 3d to 2d
+
+  //render image
 
      { Create an image 1000x1000 pixels}
-  image := TFPMemoryImage.Create (x,y);   //todo: set size
+  image := TFPMemoryImage.Create (100,100);   //todo: set size
 
   { Attach the image to the canvas }
   Canvas := TFPImageCanvas.Create (image);
@@ -362,7 +330,7 @@ begin
   Writer := TFPWriterPNG.Create;
 
   { Save to file }
-  image.SaveToFile ('DrawTest.png', writer);
+  //image.SaveToFile ('DrawTest.png', writer);
 
   { Clean up! }
   Canvas.Free;
@@ -372,20 +340,20 @@ end;
 
 procedure tGraph.loadConfigFromJSON(path: string);
 var j,res:tjsonnode;
-
 begin
     j:=tjsonnode.Create;
     j.LoadFromFile(path);
+    DefaultFormatSettings.DecimalSeparator := '.';    //change to decimal point
     if j.Find('WGS84/radius',res) then begin
-       Writeln(res.AsString);
+       //Writeln(res.AsString);
        radius:=strtofloat(res.AsString);
     end
     else radius:=earth_radius;
     if j.Find('plane/origin/WGS84/lat',res) then begin
-       Writeln(res.AsString);
+       //Writeln(res.AsString);
        origin.lat:=strtofloat(res.AsString);
        if j.Find('plane/origin/WGS84/lon',res) then begin
-          Writeln(res.AsString);
+          //Writeln(res.AsString);
           origin.lon:=strtofloat(res.AsString);
           plane:=genplane(gpsto3d(origin,radius));
           base:=sphereto3d(invertPoint(gpstosphere(origin,radius)));
@@ -396,34 +364,65 @@ end;
 
 { tGraphNode }
 
-constructor tGraphNode.create(_id: longint; _gps: tWGS84);
+function tGraphNode.get_2d: tcarthesian;
 begin
-  gps:=_gps;
-  id:=_id;
+  if iprojected then result:=i2d;
 end;
 
-function tGraphNode.get_carthesian: tcarthesian;
+function tGraphNode.get_3d: t3d;
 begin
-  result:=xy;
+ if iprojected then result:=i3d;
 end;
+
+function tGraphNode.get_id: longint;
+begin
+ result:=iid;
+end;
+
+function tGraphNode.get_projected: boolean;
+begin
+ result:=iprojected;
+end;
+
+procedure tGraphNode.set_2d(AValue: tcarthesian);
+begin
+ i2d:=AValue;
+end;
+
+procedure tGraphNode.set_3d(AValue: t3d);
+begin
+ i3d:=AValue;
+end;
+
+procedure tGraphNode.set_gps(AValue: twgs84);
+begin
+ igps:=AValue;
+end;
+
+constructor tGraphNode.create(_id: longint; _gps: tWGS84);
+begin
+  igps:=_gps;
+  iid:=_id;
+  iprojected:=false;
+  writeln('Createded Node '+inttostr(iid)+' at ( '+
+ floattostr(gps.lat)+' | '+floattostr(gps.lon)+' )');
+end;
+
 
 function tGraphNode.get_gps: tWGS84;
 begin
-  result:=gps;
+  result:=igps;
 end;
 
-procedure tGraphNode.convert_to_carthesian;
-
+procedure tGraphNode.project(plane: t3d; base: t3d; r: double);
+var ray:tray;
 begin
-
-
-
-
-end;
-
-procedure tGraphNode.set_pointzero(_pointZero: twgs84);
-begin
-  pointZero:=_pointZero;
+ //construct ray
+ ray:=getRay(base,gpsto3d(igps,r));
+ i3d:=get3dOnPlane(ray,plane);
+ iprojected:=true;
+ writeln('Projected Node '+inttostr(iid)+' to ( '+
+ floattostr(i3d.x)+' | '+floattostr(i3d.y)+' | '+floattostr(i3d.z)+' )');
 end;
 
 end.
