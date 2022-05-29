@@ -13,9 +13,21 @@ Rasterung Erstmal 1px = 1 qcm
 WGS84->radians->Kugelkoordinaten->Projektion->Polarkoordinaten->Kartesische Koordinaten
 
 
-Ablauf:
+Konvertierung Ablauf:
 
-1. 	Projektionspunkt O ist Erdmitte
-	Ebenen Auflagepunkt B ist Mitte der Karte:
-	1a.	min(lat) + Range(min(lat),max(lat))/2
-	1b.	min(lon) + Range(min(lon),max(lon))/2
+1. 	PZ bestimmen
+2.	Verschiebung v (90° - PZ.lat) bestimmen
+3. 	alle Punkte um v verschieben --> (mögliches Problem: lat > 90°)
+4.	Punkte in Kugelkoordinaten umwandeln
+5.  Stereographisch projezieren --> man erhält Polarkoordinaten. Der Koordinatenurspring ist jetzt PZ
+6.	Polarkoordinaten in Karthesische Koordinaten umwandeln
+
+7.	UpperLeft und LowerRight ermitteln
+8.	Canvas Größe aus den Bereichen Ermitteln
+9.	Verschiebeoffset für x,y definieren
+
+
+GPS:
+Die Z-Achse ist zum Nordpol gerichtet.
+Die X-Achse geht durch den Schnittpunkt von Äquatorebene mit dem Nullmeridian.
+Die Y-Achse steht im rechten Winkel zur X-Achse und Z-Achse.
