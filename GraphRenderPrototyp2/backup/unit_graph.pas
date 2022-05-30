@@ -142,10 +142,10 @@ end;
 
 function sphereTo3d(p: tsphere): t3d;
 begin
-  Writeln('sphereTo3d: Azimuth: '+floattostr(p.azimuthalangle)
-  +'° Polar: '+floattostr(p.polarangle)+'° r: 'floattostr(p.radius));
-  result.x:=p.radius*sin(p.polarangle)*cos(p.azimuthalangle);
-  result.y:=p.radius*sin(p.polarangle)*sin(p.azimuthalangle);
+  Writeln('sphereTo3d: Polar: '+floattostr(p.polarangle)
+  +'° Azimuth: '+floattostr(p.azimuthalangle)+'° r: '+floattostr(p.radius));
+  result.x:=p.radius*cos(p.azimuthalangle)*sin(p.polarangle);
+  result.y:=p.radius*sin(p.azimuthalangle)*sin(p.polarangle);
   result.z:=p.radius*cos(p.polarangle);
   Writeln('sphereTo3d: ('+floattostr(result.x)+'|'+floattostr(result.y)+'|'+floattostr(result.z)+')');
 end;
@@ -164,7 +164,7 @@ begin
  -(plane.z*ray.origin.z))
  /
  ((plane.x*ray.direction.x)
- +(plane.y*ray.direction.x)
+ +(plane.y*ray.direction.y)
  +(plane.z*ray.direction.z));
  //get point on plane
  result.x:=ray.origin.x+(r*ray.direction.x);
@@ -174,9 +174,9 @@ end;
 
 function genPlane(p: t3d): t3d;
 begin
- result.x:=power((p.x*-1),2)+p.x;
- result.y:=power((p.y*-1),2)+p.y;
- result.z:=power((p.z*-1),2)+p.z;
+ result.x:=power((p.x*(-1)),2)+p.x;
+ result.y:=power((p.y*(-1)),2)+p.y;
+ result.z:=power((p.z*(-1)),2)+p.z;
 end;
 
 function invertPoint(p: tsphere): tsphere;
@@ -397,17 +397,17 @@ begin
     j.LoadFromFile(path);
     DefaultFormatSettings.DecimalSeparator := '.';    //change to decimal point
     if j.Find('WGS84/radius',res) then begin
-       //Writeln(res.AsString);
        radius:=strtofloat(res.AsString);
+       Writeln('# Loaded radius: '+floattostr(radius)+'m');
     end
     else radius:=earth_radius;
     if j.Find('plane/origin/WGS84/lat',res) then begin
-       //Writeln(res.AsString);
        origin.lat:=strtofloat(res.AsString);
        if j.Find('plane/origin/WGS84/lon',res) then begin
-          //Writeln(res.AsString);
           origin.lon:=strtofloat(res.AsString);
+          Writeln('# Loaded origin: lat: '+floattostr(origin.lat)+'° lon: '+floattostr(origin.lon)+'°');
           plane:=genplane(gpsto3d(origin,radius));
+          Writeln('# Inverted Origin: polar: '+floattostr(invertpoint(gpstosphere(origin,radius)).polarangle)+'° azimut: '+floattostr(invertpoint(gpstosphere(origin,radius)).azimuthalangle)+'°');
           base:=sphereto3d(invertPoint(gpstosphere(origin,radius)));
           Writeln('The Projection Base is at ('+floattostr(base.x)+'|'+floattostr(base.y)+'|'+floattostr(base.z)+')');
        end;

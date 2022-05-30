@@ -2,14 +2,14 @@
 <CONFIG>
   <ProjectSession>
     <PathDelim Value="\"/>
-    <Version Value="11"/>
+    <Version Value="12"/>
     <BuildModes Active="Default"/>
     <Units Count="5">
       <Unit0>
         <Filename Value="GraphRenderer2.lpr"/>
         <IsPartOfProject Value="True"/>
         <CursorPos X="6" Y="30"/>
-        <UsageCount Value="146"/>
+        <UsageCount Value="148"/>
         <Loaded Value="True"/>
       </Unit0>
       <Unit1>
@@ -18,7 +18,7 @@
         <UnitName Value="JsonTools"/>
         <EditorIndex Value="1"/>
         <CursorPos X="36" Y="17"/>
-        <UsageCount Value="146"/>
+        <UsageCount Value="148"/>
         <Loaded Value="True"/>
       </Unit1>
       <Unit2>
@@ -26,9 +26,9 @@
         <IsPartOfProject Value="True"/>
         <IsVisibleTab Value="True"/>
         <EditorIndex Value="2"/>
-        <TopLine Value="125"/>
-        <CursorPos X="49" Y="146"/>
-        <UsageCount Value="146"/>
+        <TopLine Value="384"/>
+        <CursorPos X="98" Y="408"/>
+        <UsageCount Value="148"/>
         <Loaded Value="True"/>
       </Unit2>
       <Unit3>
@@ -50,123 +50,123 @@
     <JumpHistory Count="30" HistoryIndex="29">
       <Position1>
         <Filename Value="unit_graph.pas"/>
-        <Caret Line="379" Column="72" TopLine="355"/>
+        <Caret Line="312" Column="6" TopLine="289"/>
       </Position1>
       <Position2>
         <Filename Value="unit_graph.pas"/>
-        <Caret Line="312" Column="6" TopLine="289"/>
+        <Caret Line="74" Column="16" TopLine="55"/>
       </Position2>
       <Position3>
         <Filename Value="unit_graph.pas"/>
-        <Caret Line="74" Column="16" TopLine="55"/>
+        <Caret Line="69" Column="13" TopLine="49"/>
       </Position3>
       <Position4>
         <Filename Value="unit_graph.pas"/>
-        <Caret Line="69" Column="13" TopLine="49"/>
+        <Caret Line="76" Column="14" TopLine="54"/>
       </Position4>
       <Position5>
         <Filename Value="unit_graph.pas"/>
-        <Caret Line="76" Column="14" TopLine="54"/>
+        <Caret Line="93" Column="21" TopLine="72"/>
       </Position5>
       <Position6>
         <Filename Value="unit_graph.pas"/>
-        <Caret Line="93" Column="21" TopLine="72"/>
+        <Caret Line="83" Column="17" TopLine="53"/>
       </Position6>
       <Position7>
         <Filename Value="unit_graph.pas"/>
-        <Caret Line="83" Column="17" TopLine="53"/>
+        <Caret Line="84" Column="16" TopLine="55"/>
       </Position7>
       <Position8>
         <Filename Value="unit_graph.pas"/>
-        <Caret Line="84" Column="16" TopLine="55"/>
+        <Caret Line="59" Column="24" TopLine="40"/>
       </Position8>
       <Position9>
         <Filename Value="unit_graph.pas"/>
-        <Caret Line="59" Column="24" TopLine="40"/>
+        <Caret Line="87" Column="48" TopLine="58"/>
       </Position9>
       <Position10>
         <Filename Value="unit_graph.pas"/>
-        <Caret Line="87" Column="48" TopLine="58"/>
+        <Caret Line="88" Column="42" TopLine="67"/>
       </Position10>
       <Position11>
         <Filename Value="unit_graph.pas"/>
-        <Caret Line="88" Column="42" TopLine="67"/>
+        <Caret Line="126" Column="13" TopLine="105"/>
       </Position11>
       <Position12>
         <Filename Value="unit_graph.pas"/>
-        <Caret Line="126" Column="13" TopLine="105"/>
+        <Caret Line="125" Column="59" TopLine="104"/>
       </Position12>
       <Position13>
         <Filename Value="unit_graph.pas"/>
-        <Caret Line="125" Column="59" TopLine="104"/>
+        <Caret Line="311" Column="10" TopLine="291"/>
       </Position13>
       <Position14>
         <Filename Value="unit_graph.pas"/>
-        <Caret Line="311" Column="10" TopLine="291"/>
+        <Caret Line="125" Column="59" TopLine="105"/>
       </Position14>
       <Position15>
         <Filename Value="unit_graph.pas"/>
-        <Caret Line="125" Column="59" TopLine="105"/>
+        <Caret Line="340" Column="38" TopLine="331"/>
       </Position15>
       <Position16>
         <Filename Value="unit_graph.pas"/>
-        <Caret Line="340" Column="38" TopLine="331"/>
+        <Caret Line="240" TopLine="185"/>
       </Position16>
       <Position17>
         <Filename Value="unit_graph.pas"/>
-        <Caret Line="240" TopLine="185"/>
+        <Caret Line="196" Column="42" TopLine="175"/>
       </Position17>
       <Position18>
         <Filename Value="unit_graph.pas"/>
-        <Caret Line="196" Column="42" TopLine="175"/>
+        <Caret Line="218" Column="43" TopLine="197"/>
       </Position18>
       <Position19>
         <Filename Value="unit_graph.pas"/>
-        <Caret Line="218" Column="43" TopLine="197"/>
+        <Caret Line="406" Column="4" TopLine="385"/>
       </Position19>
       <Position20>
         <Filename Value="unit_graph.pas"/>
-        <Caret Line="406" Column="4" TopLine="385"/>
+        <Caret Line="408" TopLine="386"/>
       </Position20>
       <Position21>
         <Filename Value="unit_graph.pas"/>
-        <Caret Line="408" TopLine="386"/>
+        <Caret Line="419" Column="35" TopLine="386"/>
       </Position21>
       <Position22>
         <Filename Value="unit_graph.pas"/>
-        <Caret Line="419" Column="35" TopLine="386"/>
+        <Caret Line="296" Column="25" TopLine="262"/>
       </Position22>
       <Position23>
         <Filename Value="unit_graph.pas"/>
-        <Caret Line="296" Column="25" TopLine="262"/>
+        <Caret Line="60" Column="10" TopLine="25"/>
       </Position23>
       <Position24>
         <Filename Value="unit_graph.pas"/>
-        <Caret Line="60" Column="10" TopLine="25"/>
+        <Caret Line="61" Column="24" TopLine="38"/>
       </Position24>
       <Position25>
         <Filename Value="unit_graph.pas"/>
-        <Caret Line="61" Column="24" TopLine="38"/>
+        <Caret Line="338" Column="84" TopLine="309"/>
       </Position25>
       <Position26>
         <Filename Value="unit_graph.pas"/>
-        <Caret Line="338" Column="84" TopLine="309"/>
+        <Caret Line="197" Column="75" TopLine="177"/>
       </Position26>
       <Position27>
         <Filename Value="unit_graph.pas"/>
-        <Caret Line="197" Column="75" TopLine="177"/>
+        <Caret Line="215" Column="59" TopLine="194"/>
       </Position27>
       <Position28>
         <Filename Value="unit_graph.pas"/>
-        <Caret Line="215" Column="59" TopLine="194"/>
+        <Caret Line="185" Column="19" TopLine="155"/>
       </Position28>
       <Position29>
         <Filename Value="unit_graph.pas"/>
-        <Caret Line="185" Column="19" TopLine="155"/>
+        <Caret Line="146" Column="62" TopLine="125"/>
       </Position29>
       <Position30>
         <Filename Value="unit_graph.pas"/>
-        <Caret Line="146" Column="62" TopLine="125"/>
+        <Caret Line="177" Column="38" TopLine="151"/>
       </Position30>
     </JumpHistory>
     <RunParams>
