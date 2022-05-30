@@ -57,6 +57,8 @@ function get3dOnPlane(ray:tray; plane:t3D):t3d;                     //projects r
 function genPlane(p:t3d):t3d;                                       //generates Tangential Plane at Point p (It assumes that the Ball has its center at (0,0,0)
 function invertPoint(p:tsphere):tsphere;                            //invertiert p
 function getRay(a:t3d;b:t3d):tray;
+function distance3D(a:t3d;b:t3d):double;             //returns Distance between 2 Points
+function angleBetweenPoints(a:t3d;b:t3d;base:t3d):double;      //calculates smallest Angle between two Rays
 
 type
 
@@ -94,7 +96,8 @@ type
  tGraph=class
   private
     ways:tlist;
-    edge:array[0..3] of t3d;
+    min_edge:t3d;
+    max_edge:t3d;
     origin:twgs84;
     base:t3d;
     plane:t3d;
@@ -133,16 +136,18 @@ begin
   result.azimuthalangle:=gps.lon;
   result.polarangle:=90-gps.lat;
   result.radius:=r;
-  //Writeln('gpsToSphere: Azimuth: '+floattostr(result.azimuthalangle)
-  //+'° Polar: '+floattostr(result.polarangle)+'° r: '+floattostr(result.radius));
+  Writeln('gpsToSphere: Azimuth: '+floattostr(result.azimuthalangle)
+  +'° Polar: '+floattostr(result.polarangle)+'° r: '+floattostr(result.radius));
 end;
 
 function sphereTo3d(p: tsphere): t3d;
 begin
+  Writeln('sphereTo3d: Azimuth: '+floattostr(p.azimuthalangle)
+  +'° Polar: '+floattostr(p.polarangle)+'° r: '+floattostr(p.radius));
   result.x:=p.radius*sin(p.polarangle)*cos(p.azimuthalangle);
   result.y:=p.radius*sin(p.polarangle)*sin(p.azimuthalangle);
   result.z:=p.radius*cos(p.polarangle);
-  //Writeln('sphereTo3d: ('+floattostr(result.x)+'|'+floattostr(result.y)+'|'+floattostr(result.z)+')');
+  Writeln('sphereTo3d: ('+floattostr(result.x)+'|'+floattostr(result.y)+'|'+floattostr(result.z)+')');
 end;
 
 function gpsTo3d(gps: twgs84; r: double): t3d;
@@ -179,6 +184,8 @@ begin
  result.polarangle:=180-p.polarangle;
  result.azimuthalangle:=p.azimuthalangle+180;
  result.radius:=p.radius;
+ Writeln('InvertPoint: Azimuth: '+floattostr(result.azimuthalangle)
+  +'° Polar: '+floattostr(result.polarangle)+'°');
 end;
 
 function getRay(a: t3d; b: t3d): tray;
@@ -187,6 +194,29 @@ begin
   result.direction.x:=a.x-b.x;
   result.direction.y:=a.y-b.y;
   result.direction.z:=a.z-b.z;
+end;
+
+function distance3D(a: t3d; b: t3d): double;
+begin
+  result:=sqrt((power((b.x-a.x),2)+power((b.y-a.y),2)+power((b.z-a.z),2)));
+end;
+
+function angleBetweenPoints(a: t3d; b: t3d; base: t3d): double;
+var vec1,vec2:t3d;
+begin
+  //Caclulate vec1, vec2
+  vec1.x:=a.x-base.x;
+  vec1.y:=a.y-base.y;
+  vec1.z:=a.z-base.z;
+
+  vec2.x:=b.x-base.x;
+  vec2.y:=b.y-base.y;
+  vec2.z:=b.z-base.z;
+
+  result:=arccos(((vec1.x*vec2.x)+(vec1.y*vec2.y)+(vec1.z*vec2.z))
+  /
+  (sqrt(power(vec1.x,2)+power(vec1.y,2)+power(vec1.z,2))
+  *sqrt(power(vec2.x,2)+power(vec2.y,2)+power(vec2.z,2))));
 end;
 
 { tWay }
@@ -266,7 +296,7 @@ begin
             DefaultFormatSettings.DecimalSeparator := '.';    //change to decimal point
             wgs84.lat:=strtofloat(nd.Child(nodes).Find('@lat').AsString);
             wgs84.lon:=strtofloat(nd.Child(nodes).Find('@lon').AsString);
-            writeln('Node '+floattostr(wgs84.lat)+' '+floattostr(wgs84.lon)+' added');
+            //writeln('Node '+floattostr(wgs84.lat)+' '+floattostr(wgs84.lon)+' added');
             w.add_node(tGraphNode.create(strtoint(nd.Child(nodes).Find('@id').AsString),wgs84));
         end;
         //TODO: parse tag (surface, width, maxspeed
@@ -279,6 +309,7 @@ procedure tGraph.renderImageToFile(path: string);
 var
     i,j,x,y:integer;
     w:tway;
+    p:t3d;
     canvas : TFPCustomCanvas;
     image : TFPCustomImage;
     writer : TFPCustomImageWriter;
@@ -291,6 +322,27 @@ begin
    end;
   end;
   //gather edges
+  p:=tway(ways.Items[0]).get_Node(0).get_3d;  //init p (fails if no node and way was loaded
+
+  min_edge:=p;
+  max_edge:=p;
+  for i:=0 to ways.Count-1 do begin
+   w:=tway(ways.Items[i]);
+   for j:=0 to w.Count-1 do begin
+    p:=w.get_Node(j).get_3d;
+    Writeln('The p is at ('+floattostr(p.x)+'|'+floattostr(p.y)+'|'+floattostr(p.z)+')');
+    if p.x<min_edge.x then min_edge.x:=p.x;
+    if p.y<min_edge.y then min_edge.y:=p.y;
+    if p.z<min_edge.z then min_edge.z:=p.z;
+
+    if p.x>max_edge.x then max_edge.x:=p.x;
+    if p.y>max_edge.y then max_edge.y:=p.y;
+    if p.z>max_edge.z then max_edge.z:=p.z;
+   end;
+  end;
+  Writeln('The min_edge is at ('+floattostr(min_edge.x)+'|'+floattostr(min_edge.y)+'|'+floattostr(min_edge.z)+')');
+  Writeln('The max_edge is at ('+floattostr(max_edge.x)+'|'+floattostr(max_edge.y)+'|'+floattostr(max_edge.z)+')');
+  writeln('Area cross-section: '+floattostr(distance3d(min_edge,max_edge))+' m');
 
   //project 3d to 2d
 
