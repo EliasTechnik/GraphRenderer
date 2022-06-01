@@ -23,17 +23,6 @@ type tSphere=record
      azimuthalangle:double;
 end;
 
-type tPolar=record
-     radius:double;
-     phi:double;
-end;
-
-type tCarthesian=record
-     x:double;
-     y:double;
-     scale_factor:double;
-end;
-
 type t3D=record
      x:double;
      y:double;
@@ -45,6 +34,11 @@ type tRay=record
      direction:t3D;
 end;
 
+type tTangentPlane=record
+     normal:t3d;     //vector (in our case the point P)
+     argument:double; //c (or radius^2)
+end;
+
 const earth_radius: double = 6378137;     //in m
       earth_vert_axis: double = 6356752.314245; // in m
       erth_inverse_flattening: double = 298.257223563; // 1/f
@@ -53,12 +47,13 @@ const earth_radius: double = 6378137;     //in m
 function gpstosphere(gps:twgs84; r:double):tsphere;  //converts WGS84 to Spherical
 function sphereTo3d(p:tsphere):t3d;                                 //converts Spherical to 3d Carthesian
 function gpsTo3d(gps:twgs84; r:double):t3d;          //converts WGS84 to 3d Carthesian
-function get3dOnPlane(ray:tray; plane:t3D):t3d;                     //projects ray on plane and returns Intersection with plane
-function genPlane(p:t3d):t3d;                                       //generates Tangential Plane at Point p (It assumes that the Ball has its center at (0,0,0)
+function get3dOnPlane(ray:tray; plane:ttangentplane):t3d;                     //projects ray on plane and returns Intersection with plane
+function genPlane(p:t3d):tTangentPlane;                                       //generates Tangential Plane at Point p (It assumes that the Ball has its center at (0,0,0)
 function invertPoint(p:tsphere):tsphere;                            //invertiert p
 function getRay(a:t3d;b:t3d):tray;
 function distance3D(a:t3d;b:t3d):double;             //returns Distance between 2 Points
 function angleBetweenPoints(a:t3d;b:t3d;base:t3d):double;      //calculates smallest Angle between two Rays
+function distanceToRay(p:t3d;r:tray):double;                   //returns minimal distance to ray
 
 type
 
@@ -67,26 +62,22 @@ type
  tGraphNode=class
   private
     igps:tWGS84;
-    i2d:tcarthesian;
     i3d:t3d;
     iid:longint;
     iprojected:boolean;
-    function get_2d: tcarthesian;
     function get_3d: t3d;
     function get_gps: twgs84;
     function get_id: longint;
     function get_projected: boolean;
-    procedure set_2d(AValue: tcarthesian);
     procedure set_3d(AValue: t3d);
     procedure set_gps(AValue: twgs84);
   public
     constructor create(_id:longint;_gps:tWGS84);
     property gps:twgs84 read get_gps write set_gps;
-    property p2d:tcarthesian read get_2d write set_2d;
     property p3d:t3d read get_3d write set_3d;
     property projected:boolean read get_projected;
     property ID:longint read get_id;
-    procedure project(plane:t3d;base:t3d;r:double);
+    procedure project(plane:ttangentplane;base:t3d;r:double);
 end;
 
 type
@@ -96,14 +87,16 @@ type
  tGraph=class
   private
     ways:tlist;
-    min_edge:t3d;
-    max_edge:t3d;
-    north_west_edge:t3d;
-    south_east_edge:t3d;
+    map_corners:array [0..3] of t3d;
+    map_borders:array [0..3] of tray;
+    pixelwidth:double; //width of one pixel in m
     origin:twgs84;
     base:t3d;
-    plane:t3d;
+    plane:tTangentPlane;
     radius:double;
+    baseunit:string;
+    scalefactor:integer;
+    procedure compute_edge(n,w,e,s:double);
   public
     constructor create();
     procedure loadFromJSONFile(path:string);
@@ -122,12 +115,15 @@ type
     isurface:tsurface;
     iwidth:double;
     imaxspeed:double;
+    function getWidth: double;
     function get_Node(index:integer): tGraphNode;
+    procedure setWidth(AValue: double);
   public
     constructor create(_id:longint);
     procedure add_node(_node:tGraphNode);
-    function paint(c:TFPCustomCanvas):TFPCustomCanvas;
+    function paint(c:TFPCustomCanvas; ux:tray; uy:tray; pixelwidth:double):TFPCustomCanvas;
     property Nodes[index:integer]:tGraphNode read get_Node;
+    property pWidth:double read getWidth write setWidth;
     function Count:integer;
 end;
 
@@ -157,28 +153,36 @@ begin
   result:=sphereto3d(gpstosphere(gps,r));
 end;
 
-function get3dOnPlane(ray: tray; plane: t3D): t3d;
+function get3dOnPlane(ray: tray; plane: ttangentplane): t3d;
 var r:double;
 begin
  //calculate r
- r:=(((plane.x*ray.origin.x)*-1)
- -(plane.y*ray.origin.y)
- -(plane.z*ray.origin.z))
+ r:=(((plane.normal.x*ray.origin.x)*-1)
+ -(plane.normal.y*ray.origin.y)
+ -(plane.normal.z*ray.origin.z)+plane.argument)
  /
- ((plane.x*ray.direction.x)
- +(plane.y*ray.direction.y)
- +(plane.z*ray.direction.z));
+ ((plane.normal.x*ray.direction.x)
+ +(plane.normal.y*ray.direction.y)
+ +(plane.normal.z*ray.direction.z));
  //get point on plane
  result.x:=ray.origin.x+(r*ray.direction.x);
  result.y:=ray.origin.y+(r*ray.direction.y);
  result.z:=ray.origin.z+(r*ray.direction.z);
 end;
 
-function genPlane(p: t3d): t3d;
+function genPlane(p: t3d): tTangentPlane;
+var center:t3d;
 begin
- result.x:=power((p.x*(-1)),2)+p.x;
- result.y:=power((p.y*(-1)),2)+p.y;
- result.z:=power((p.z*(-1)),2)+p.z;
+ center.x:=0;
+ center.y:=0;
+ center.z:=0;
+ result.normal.x:=p.x;
+ result.normal.y:=p.y;
+ result.normal.z:=p.z;
+ result.argument:=power(distance3d(center,p),2);
+ //result.x:=power((p.x*(-1)),2)+p.x;
+ //result.y:=power((p.y*(-1)),2)+p.y;
+ //result.z:=power((p.z*(-1)),2)+p.z;
 end;
 
 function invertPoint(p: tsphere): tsphere;
@@ -193,14 +197,17 @@ end;
 function getRay(a: t3d; b: t3d): tray;
 begin
   result.origin:=a;
-  result.direction.x:=a.x-b.x;
-  result.direction.y:=a.y-b.y;
-  result.direction.z:=a.z-b.z;
+  result.direction.x:=b.x-a.x;
+  result.direction.y:=b.y-a.y;
+  result.direction.z:=b.z-a.z;
 end;
 
 function distance3D(a: t3d; b: t3d): double;
 begin
-  result:=sqrt((power((b.x-a.x),2)+power((b.y-a.y),2)+power((b.z-a.z),2)));
+  result:=sqrt(
+      (power((b.x-a.x),2)
+      +power((b.y-a.y),2)
+      +power((b.z-a.z),2)));
 end;
 
 function angleBetweenPoints(a: t3d; b: t3d; base: t3d): double;
@@ -221,11 +228,30 @@ begin
   *sqrt(power(vec2.x,2)+power(vec2.y,2)+power(vec2.z,2))));
 end;
 
+function distanceToRay(p: t3d; r: tray): double;
+var D1,D2,D3:double;
+begin
+  D1:=((p.y-r.origin.y)*r.direction.z)-((p.z-r.origin.z)*r.direction.y);
+  D2:=((p.z-r.origin.z)*r.direction.x)-((p.x-r.origin.x)*r.direction.z);
+  D3:=((p.x-r.origin.x)*r.direction.y)-((p.y-r.origin.y)*r.direction.x);
+  result:=sqrt((power(D1,2)+power(D2,2)+power(D3,2)))/sqrt((power(r.direction.x,2)+power(r.direction.y,2)+power(r.direction.z,2)));
+end;
+
 { tWay }
 
 function tWay.get_Node(index: integer): tGraphNode;
 begin
   result:=tGraphNode(inodes.Items[index]);
+end;
+
+function tWay.getWidth: double;
+begin
+  result:=iwidth;
+end;
+
+procedure tWay.setWidth(AValue: double);
+begin
+  iwidth:=AValue;
 end;
 
 constructor tWay.create(_id: longint);
@@ -239,16 +265,18 @@ begin
   inodes.Add(_node);
 end;
 
-function tWay.paint(c: TFPCustomCanvas): TFPCustomCanvas;
+function tWay.paint(c: TFPCustomCanvas; ux:tray; uy:tray; pixelwidth:double): TFPCustomCanvas;
 var points:array of tpoint;
-    xy:tcarthesian;
+    x:integer;
+    y:integer;
     i:integer;
 begin
 //get array of points (tpoint)
   setlength(points,inodes.Count);
   for i:=0 to inodes.count-1 do begin
-    xy:=tgraphnode(inodes.Items[i]).get_2d;
-    //points[i]:=tpoint.Create(xy.x-offset.x,xy.y-offset.y);
+    x:=round(distanceToRay(tgraphnode(inodes.Items[i]).get_3d,uy)*(1/pixelwidth));
+    y:=round(distanceToRay(tgraphnode(inodes.Items[i]).get_3d,ux)*(1/pixelwidth));
+    points[i]:=tpoint.Create(x,y);
     Writeln('Way '+inttostr(iid)+' has point at x: '+inttostr(points[i].X)+' y: '+inttostr(points[i].Y));
   end;
   //setup pen
@@ -256,7 +284,7 @@ begin
     begin
       pen.mode    := pmCopy;
       pen.style   := psSolid;
-      pen.width   := 10;      //todo set way width
+      pen.width   := 20 //round(iwidth*(1/pixelwidth));      //disabled becaus of bad scaling //todo set way width
       pen.FPColor := TColorToFPColor(rgbtocolor(255,255,255));  //todo: generate costs
     end;
 
@@ -273,18 +301,50 @@ end;
 
 { tGraph }
 
+procedure tGraph.compute_edge(n, w, e, s: double);
+var gps:twgs84;
+    ray:tray;
+begin
+  gps.lat:=n;
+  gps.lon:=w;
+  ray:=getray(base,gpsto3d(gps,radius));
+  map_corners[0]:=get3donplane(ray,plane);      //north-west
+  gps.lat:=n;
+  gps.lon:=e;
+  ray:=getray(base,gpsto3d(gps,radius));
+  map_corners[1]:=get3donplane(ray,plane);      //north-east
+  gps.lat:=s;
+  gps.lon:=e;
+  ray:=getray(base,gpsto3d(gps,radius));
+  map_corners[2]:=get3donplane(ray,plane);      //south-east
+  gps.lat:=s;
+  gps.lon:=w;
+  ray:=getray(base,gpsto3d(gps,radius));
+  map_corners[3]:=get3donplane(ray,plane);      //south-west
+
+  Writeln('# The Plane NW corners are at ('+floattostr(map_corners[0].x)+'|'+floattostr(map_corners[0].y)+'|'+floattostr(map_corners[0].z)+')');
+  Writeln('# The Plane NE corners are at ('+floattostr(map_corners[1].x)+'|'+floattostr(map_corners[1].y)+'|'+floattostr(map_corners[1].z)+')');
+  Writeln('# The Plane SE corners are at ('+floattostr(map_corners[2].x)+'|'+floattostr(map_corners[2].y)+'|'+floattostr(map_corners[2].z)+')');
+  Writeln('# The Plane SW corners are at ('+floattostr(map_corners[3].x)+'|'+floattostr(map_corners[3].y)+'|'+floattostr(map_corners[3].z)+')');
+
+  map_borders[0]:=getray(map_corners[0],map_corners[1]);   //north
+  map_borders[1]:=getray(map_corners[1],map_corners[2]);   //east
+  map_borders[2]:=getray(map_corners[3],map_corners[2]);   //south
+  map_borders[3]:=getray(map_corners[0],map_corners[3]);   //west
+
+end;
+
 constructor tGraph.create();
 begin
   ways:=tlist.Create;
 end;
 
 procedure tGraph.loadFromJSONFile(path: string);
-var j,graph,way,nd:tjsonnode;
-    wi,nodes:integer;
+var j,graph,way,nd,tag:tjsonnode;
+    wi,nodes,t:integer;
     w:tway;
+    k,v:string;
     wgs84:twgs84;
-    pz_min,pz_max,pz:twgs84;
-    ul,lr:tGraphnode;
 begin
   j:=tjsonnode.Create;
   j.LoadFromFile(path);
@@ -301,7 +361,13 @@ begin
             //writeln('Node '+floattostr(wgs84.lat)+' '+floattostr(wgs84.lon)+' added');
             w.add_node(tGraphNode.create(strtoint(nd.Child(nodes).Find('@id').AsString),wgs84));
         end;
-        //TODO: parse tag (surface, width, maxspeed
+        tag:=way.Find('tag');
+        for t:=0 to tag.count-1 do begin
+           k:=tag.child(t).Find('@k').AsString;
+           v:=tag.child(t).Find('@v').AsString;
+           if k='width' then w.pWidth:=strtofloat(v);
+           //TODO: parse other tags (surface, maxspeed, ...
+        end;
         ways.Add(w);
      end;
   end;
@@ -309,49 +375,35 @@ end;
 
 procedure tGraph.renderImageToFile(path: string);
 var
-    i,j,x,y:integer;
+    i,j,x,y,width,height:integer;
     w:tway;
     p:t3d;
     canvas : TFPCustomCanvas;
     image : TFPCustomImage;
     writer : TFPCustomImageWriter;
+    n:tgraphnode;
 begin
   //generate 3d coordiantes
+  n:=tway(ways.Items[0]).get_Node(0);
   for i:=0 to ways.Count-1 do begin
    w:=tway(ways.Items[i]);
    for j:=0 to w.Count-1 do begin
     w.get_Node(j).project(plane,base,radius);
+    Writeln('distance to prev. node:'+floattostr(distance3d(n.get_3d,w.get_Node(j).get_3d))+baseunit);
+    n:=w.get_Node(j);
    end;
   end;
-  //gather edges
-  p:=tway(ways.Items[0]).get_Node(0).get_3d;  //init p (fails if no node and way was loaded
-
-  min_edge:=p;
-  max_edge:=p;
-  for i:=0 to ways.Count-1 do begin
-   w:=tway(ways.Items[i]);
-   for j:=0 to w.Count-1 do begin
-    p:=w.get_Node(j).get_3d;
-    //Writeln('The p is at ('+floattostr(p.x)+'|'+floattostr(p.y)+'|'+floattostr(p.z)+')');
-    if p.x<min_edge.x then min_edge.x:=p.x;
-    if p.y<min_edge.y then min_edge.y:=p.y;
-    if p.z<min_edge.z then min_edge.z:=p.z;
-
-    if p.x>max_edge.x then max_edge.x:=p.x;
-    if p.y>max_edge.y then max_edge.y:=p.y;
-    if p.z>max_edge.z then max_edge.z:=p.z;
-   end;
-  end;
-  Writeln('The min_edge is at ('+floattostr(min_edge.x)+'|'+floattostr(min_edge.y)+'|'+floattostr(min_edge.z)+')');
-  Writeln('The max_edge is at ('+floattostr(max_edge.x)+'|'+floattostr(max_edge.y)+'|'+floattostr(max_edge.z)+')');
-  //writeln('Area cross-section: '+floattostr(distance3d(min_edge,max_edge))+' m');
 
   //project 3d to 2d
 
   //render image
 
-     { Create an image 1000x1000 pixels}
-  image := TFPMemoryImage.Create (100,100);   //todo: set size
+  { Create an image 1000x1000 pixels}
+  width:=round(distance3d(map_corners[0],map_corners[1])*(1/pixelwidth));
+  height:=round(distance3d(map_corners[0],map_corners[3])*(1/pixelwidth));
+  Writeln('Output canvas dimmension (w,h): '+inttostr(width)+','+inttostr(height));
+
+  image := TFPMemoryImage.Create (width,height);   //todo: set size
 
   { Attach the image to the canvas }
   Canvas := TFPImageCanvas.Create (image);
@@ -359,7 +411,7 @@ begin
 
   //draw points
   for i:=0 to ways.count-1 do begin
-   canvas:=tway(ways.items[i]).paint(canvas);
+   canvas:=tway(ways.items[i]).paint(canvas,map_borders[0],map_borders[3],pixelwidth);
   end;
 
   {
@@ -384,7 +436,7 @@ begin
   Writer := TFPWriterPNG.Create;
 
   { Save to file }
-  //image.SaveToFile ('DrawTest.png', writer);
+  image.SaveToFile ('DrawTest.png', writer);
 
   { Clean up! }
   Canvas.Free;
@@ -394,14 +446,21 @@ end;
 
 procedure tGraph.loadConfigFromJSON(path: string);
 var j,res:tjsonnode;
-    nwe,see:twgs84;
+    north,west,south,east:double;
 begin
     j:=tjsonnode.Create;
     j.LoadFromFile(path);
     DefaultFormatSettings.DecimalSeparator := '.';    //change to decimal point
+    if j.Find('WGS84/unit',res) then begin
+       baseunit:=res.AsString;
+       Writeln('# Baseunit: '+baseunit);
+       if baseunit='km' then scalefactor:=100;
+       if baseunit='m' then scalefactor:=1;
+    end
+    else baseunit:='m';
     if j.Find('WGS84/radius',res) then begin
        radius:=strtofloat(res.AsString);
-       Writeln('# Loaded radius: '+floattostr(radius)+'m');
+       Writeln('# Loaded radius: '+floattostr(radius)+baseunit);
     end
     else radius:=earth_radius;
     if j.Find('plane/origin/WGS84/lat',res) then begin
@@ -410,44 +469,29 @@ begin
           origin.lon:=strtofloat(res.AsString);
           Writeln('# Loaded origin: lat: '+floattostr(origin.lat)+'° lon: '+floattostr(origin.lon)+'°');
           plane:=genplane(gpsto3d(origin,radius));
+
           Writeln('# Inverted Origin: polar: '+floattostr(invertpoint(gpstosphere(origin,radius)).polarangle)+'° azimut: '+floattostr(invertpoint(gpstosphere(origin,radius)).azimuthalangle)+'°');
           base:=sphereto3d(invertPoint(gpstosphere(origin,radius)));
+          Writeln('# The Plane Origin is at ('+floattostr(gpsto3d(origin,radius).x)+'|'+floattostr(gpsto3d(origin,radius).y)+'|'+floattostr(gpsto3d(origin,radius).z)+')');
+          Writeln('# The Plane is (x: '+floattostr(plane.normal.x)+'|y: '+floattostr(plane.normal.y)+'|z: '+floattostr(plane.normal.z)+')');
           Writeln('# The Projection Base is at ('+floattostr(base.x)+'|'+floattostr(base.y)+'|'+floattostr(base.z)+')');
        end;
     end;
-    if j.Find('plane/north_west_edge/WGS84/lat',res) then begin
-       nwe.lat:=strtofloat(res.AsString);
-       if j.Find('plane/north_west_edge/WGS84/lon',res) then begin
-          nwe.lon:=strtofloat(res.AsString);
-          Writeln('# Loaded north_west_edge: lat: '+floattostr(nwe.lat)+'° lon: '+floattostr(nwe.lon)+'°');
-          Writeln('# Spherical north_west_edge: polar: '+floattostr(gpstosphere(nwe,radius).polarangle)+'° azimuth: '+floattostr(gpstosphere(nwe,radius).azimuthalangle)+'°');
-          Writeln('# The carthesian north_west_edge is at ('+floattostr(gpsto3d(nwe,radius).x)+'|'+floattostr(gpsto3d(nwe,radius).y)+'|'+floattostr(gpsto3d(nwe,radius).z)+')');
-          north_west_edge:=get3donplane(getray(base,gpsto3d(nwe,radius)),plane);
-          Writeln('# The planes north_west_edge is at ('+floattostr(north_west_edge.x)+'|'+floattostr(north_west_edge.y)+'|'+floattostr(north_west_edge.z)+')');
-       end;
-    end
-    else Writeln('# ERROR: failed loading north_west_edge.');
-    if j.Find('plane/south_east_edge/WGS84/lat',res) then begin
-       see.lat:=strtofloat(res.AsString);
-       if j.Find('plane/south_east_edge/WGS84/lon',res) then begin
-          see.lon:=strtofloat(res.AsString);
-          Writeln('# Loaded south_east_edge: lat: '+floattostr(see.lat)+'° lon: '+floattostr(see.lon)+'°');
-          Writeln('# Spherical south_east_edge: polar:'+floattostr(gpstosphere(see,radius).polarangle)+'° azimuth: '+floattostr(gpstosphere(see,radius).azimuthalangle)+'°');
-          Writeln('# The carthesian south_east_edge is at ('+floattostr(gpsto3d(sse,radius).x)+'|'+floattostr(gpsto3d(sse,radius).y)+'|'+floattostr(gpsto3d(sse,radius).z)+')');
-          south_east_edge:=get3donplane(getray(base,gpsto3d(see,radius)),plane);
-          Writeln('# The planes south_east_edge is at ('+floattostr(south_east_edge.x)+'|'+floattostr(south_east_edge.y)+'|'+floattostr(south_east_edge.z)+')');
-       end;
-    end
-    else Writeln('# ERROR: failed loading south_east_edge.');
-    writeln('# Area cross-section: '+floattostr(distance3d(north_west_edge,south_east_edge))+' m');
+    if j.Find('output/pixelwidth',res) then begin
+       pixelwidth:=strtofloat(res.AsString);
+       Writeln('# Set pixelwidth to '+floattostr(pixelwidth)+' m');
+    end;
+    if j.Find('plane/edge/WGS84/north_lat',res) then north:=strtofloat(res.AsString);
+    if j.Find('plane/edge/WGS84/south_lat',res) then south:=strtofloat(res.AsString);
+    if j.Find('plane/edge/WGS84/west_lon',res) then west:=strtofloat(res.AsString);
+    if j.Find('plane/edge/WGS84/east_lon',res) then east:=strtofloat(res.AsString);
+
+    compute_edge(north,west,east,south);
+
 end;
 
 { tGraphNode }
 
-function tGraphNode.get_2d: tcarthesian;
-begin
-  if iprojected then result:=i2d;
-end;
 
 function tGraphNode.get_3d: t3d;
 begin
@@ -462,11 +506,6 @@ end;
 function tGraphNode.get_projected: boolean;
 begin
  result:=iprojected;
-end;
-
-procedure tGraphNode.set_2d(AValue: tcarthesian);
-begin
- i2d:=AValue;
 end;
 
 procedure tGraphNode.set_3d(AValue: t3d);
@@ -489,12 +528,12 @@ begin
 end;
 
 
-function tGraphNode.get_gps: tWGS84;
+function tGraphNode.get_gps: twgs84;
 begin
   result:=igps;
 end;
 
-procedure tGraphNode.project(plane: t3d; base: t3d; r: double);
+procedure tGraphNode.project(plane: ttangentplane; base: t3d; r: double);
 var ray:tray;
 begin
  //construct ray
@@ -502,7 +541,7 @@ begin
  i3d:=get3dOnPlane(ray,plane);
  iprojected:=true;
  writeln('Projected Node '+inttostr(iid)+' to ( '+
- floattostr(i3d.x)+' | '+floattostr(i3d.y)+' | '+floattostr(i3d.z)+' )');
+ floattostr(i3d.x)+','+floattostr(i3d.y)+','+floattostr(i3d.z)+' )');
 end;
 
 end.

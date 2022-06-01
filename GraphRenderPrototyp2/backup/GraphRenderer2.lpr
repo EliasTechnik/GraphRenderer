@@ -47,9 +47,9 @@ begin
   if HasOption('l', 'loadfile') then begin
     WriteLn('Loading JSON...');
     prog:=tgraph.create();
-    prog.loadConfigFromJSON('config.json');
-    //prog.loadFromJSONFile(paramStr(2));
-    //prog.renderImageToFile('testimage.png');
+    prog.loadConfigFromJSON('config.json'); //config_km.json
+    prog.loadFromJSONFile(paramStr(2));
+    prog.renderImageToFile('testimage.png');
 
 
     //wait to show output
