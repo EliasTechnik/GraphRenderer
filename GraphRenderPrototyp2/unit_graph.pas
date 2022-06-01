@@ -98,6 +98,8 @@ type
     ways:tlist;
     min_edge:t3d;
     max_edge:t3d;
+    north_west_edge:t3d;
+    south_east_edge:t3d;
     origin:twgs84;
     base:t3d;
     plane:t3d;
@@ -136,18 +138,18 @@ begin
   result.azimuthalangle:=gps.lon;
   result.polarangle:=90-gps.lat;
   result.radius:=r;
-  Writeln('gpsToSphere: Azimuth: '+floattostr(result.azimuthalangle)
-  +'° Polar: '+floattostr(result.polarangle)+'° r: '+floattostr(result.radius));
+  //Writeln('gpsToSphere: Azimuth: '+floattostr(result.azimuthalangle)
+  //+'° Polar: '+floattostr(result.polarangle)+'° r: '+floattostr(result.radius));
 end;
 
 function sphereTo3d(p: tsphere): t3d;
 begin
-  Writeln('sphereTo3d: Polar: '+floattostr(p.polarangle)
-  +'° Azimuth: '+floattostr(p.azimuthalangle)+'° r: '+floattostr(p.radius));
+  //Writeln('sphereTo3d: Polar: '+floattostr(p.polarangle)
+  //+'° Azimuth: '+floattostr(p.azimuthalangle)+'° r: '+floattostr(p.radius));
   result.x:=p.radius*cos(p.azimuthalangle)*sin(p.polarangle);
   result.y:=p.radius*sin(p.azimuthalangle)*sin(p.polarangle);
   result.z:=p.radius*cos(p.polarangle);
-  Writeln('sphereTo3d: ('+floattostr(result.x)+'|'+floattostr(result.y)+'|'+floattostr(result.z)+')');
+  //Writeln('sphereTo3d: ('+floattostr(result.x)+'|'+floattostr(result.y)+'|'+floattostr(result.z)+')');
 end;
 
 function gpsTo3d(gps: twgs84; r: double): t3d;
@@ -184,8 +186,8 @@ begin
  result.polarangle:=180-p.polarangle;
  result.azimuthalangle:=p.azimuthalangle+180;
  result.radius:=p.radius;
- Writeln('InvertPoint: Azimuth: '+floattostr(result.azimuthalangle)
-  +'° Polar: '+floattostr(result.polarangle)+'°');
+ //Writeln('InvertPoint: Azimuth: '+floattostr(result.azimuthalangle)
+  //+'° Polar: '+floattostr(result.polarangle)+'°');
 end;
 
 function getRay(a: t3d; b: t3d): tray;
@@ -342,7 +344,7 @@ begin
   end;
   Writeln('The min_edge is at ('+floattostr(min_edge.x)+'|'+floattostr(min_edge.y)+'|'+floattostr(min_edge.z)+')');
   Writeln('The max_edge is at ('+floattostr(max_edge.x)+'|'+floattostr(max_edge.y)+'|'+floattostr(max_edge.z)+')');
-  writeln('Area cross-section: '+floattostr(distance3d(min_edge,max_edge))+' m');
+  //writeln('Area cross-section: '+floattostr(distance3d(min_edge,max_edge))+' m');
 
   //project 3d to 2d
 
@@ -392,6 +394,7 @@ end;
 
 procedure tGraph.loadConfigFromJSON(path: string);
 var j,res:tjsonnode;
+    nwe,see:twgs84;
 begin
     j:=tjsonnode.Create;
     j.LoadFromFile(path);
@@ -409,9 +412,34 @@ begin
           plane:=genplane(gpsto3d(origin,radius));
           Writeln('# Inverted Origin: polar: '+floattostr(invertpoint(gpstosphere(origin,radius)).polarangle)+'° azimut: '+floattostr(invertpoint(gpstosphere(origin,radius)).azimuthalangle)+'°');
           base:=sphereto3d(invertPoint(gpstosphere(origin,radius)));
-          Writeln('The Projection Base is at ('+floattostr(base.x)+'|'+floattostr(base.y)+'|'+floattostr(base.z)+')');
+          Writeln('# The Projection Base is at ('+floattostr(base.x)+'|'+floattostr(base.y)+'|'+floattostr(base.z)+')');
        end;
     end;
+    if j.Find('plane/north_west_edge/WGS84/lat',res) then begin
+       nwe.lat:=strtofloat(res.AsString);
+       if j.Find('plane/north_west_edge/WGS84/lon',res) then begin
+          nwe.lon:=strtofloat(res.AsString);
+          Writeln('# Loaded north_west_edge: lat: '+floattostr(nwe.lat)+'° lon: '+floattostr(nwe.lon)+'°');
+          Writeln('# Spherical north_west_edge: polar: '+floattostr(gpstosphere(nwe,radius).polarangle)+'° azimuth: '+floattostr(gpstosphere(nwe,radius).azimuthalangle)+'°');
+          Writeln('# The carthesian north_west_edge is at ('+floattostr(gpsto3d(nwe,radius).x)+'|'+floattostr(gpsto3d(nwe,radius).y)+'|'+floattostr(gpsto3d(nwe,radius).z)+')');
+          north_west_edge:=get3donplane(getray(base,gpsto3d(nwe,radius)),plane);
+          Writeln('# The planes north_west_edge is at ('+floattostr(north_west_edge.x)+'|'+floattostr(north_west_edge.y)+'|'+floattostr(north_west_edge.z)+')');
+       end;
+    end
+    else Writeln('# ERROR: failed loading north_west_edge.');
+    if j.Find('plane/south_east_edge/WGS84/lat',res) then begin
+       see.lat:=strtofloat(res.AsString);
+       if j.Find('plane/south_east_edge/WGS84/lon',res) then begin
+          see.lon:=strtofloat(res.AsString);
+          Writeln('# Loaded south_east_edge: lat: '+floattostr(see.lat)+'° lon: '+floattostr(see.lon)+'°');
+          Writeln('# Spherical south_east_edge: polar:'+floattostr(gpstosphere(see,radius).polarangle)+'° azimuth: '+floattostr(gpstosphere(see,radius).azimuthalangle)+'°');
+          Writeln('# The carthesian south_east_edge is at ('+floattostr(gpsto3d(see,radius).x)+'|'+floattostr(gpsto3d(see,radius).y)+'|'+floattostr(gpsto3d(see,radius).z)+')');
+          south_east_edge:=get3donplane(getray(base,gpsto3d(see,radius)),plane);
+          Writeln('# The planes south_east_edge is at ('+floattostr(south_east_edge.x)+'|'+floattostr(south_east_edge.y)+'|'+floattostr(south_east_edge.z)+')');
+       end;
+    end
+    else Writeln('# ERROR: failed loading south_east_edge.');
+    writeln('# Area cross-section: '+floattostr(distance3d(north_west_edge,south_east_edge))+' m');
 end;
 
 { tGraphNode }
