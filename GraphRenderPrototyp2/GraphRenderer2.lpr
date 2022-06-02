@@ -18,7 +18,9 @@ type
   public
     constructor Create(TheOwner: TComponent); override;
     destructor Destroy; override;
-    procedure WriteHelp; virtual;
+    function wantHelp:boolean; //true if user wants help
+    procedure displayHelp;     //prints help page
+    function getParam(key:string;shortkey:string;out value:string):boolean; //true if param is given
   end;
 
 { TGraphRenderer }
@@ -27,41 +29,45 @@ procedure TGraphRenderer.DoRun;
 var
   ErrorMsg: String;
   prog:tgraph;
+  v:string;
+  keepalive:boolean;
 begin
-  // quick check parameters
-  ErrorMsg:=CheckOptions('h', 'help');
-  ErrorMsg:=CheckOptions('l', 'loadfile');
-  if ErrorMsg<>'' then begin
-    ShowException(Exception.Create(ErrorMsg));
-    Terminate;
-    Exit;
+  keepalive:=true;
+  if paramcount>1 then begin
+    if wantHelp then displayHelp
+    else begin
+      //programcode
+      prog:=tgraph.create();
+      if getParam('-a','-automatic',v) then keepalive:=false;
+      if getParam('-c','-config',v) then begin
+        Writeln('# Loading config "'+v+'"...');
+        prog.loadConfigFromJSON(v); //config.json
+      end
+      else begin
+        v:='config_km.json';
+        WriteLn('# Using default config: "'+v+'"');
+        prog.loadConfigFromJSON(v);
+      end;
+      if getParam('-l','-load',v) then begin
+        WriteLn('# Loading JSON Graph data from "'+v+'"');
+        prog.loadFromJSONFile(paramStr(2));
+        WriteLn('# Render OCM...');
+        prog.renderImageToFile('testimage.png');
+      end
+      else begin
+        WriteLn('# Error: No graph data was found.');
+      end;
+    end;
+  end
+  else begin
+    displayHelp;
   end;
-
-  // parse parameters
-  if HasOption('h', 'help') then begin
-    WriteHelp;
-    Terminate;
-    Exit;
+  if keepalive then begin
+      WriteLn('Press any key to exit...');
+      Readln();
   end;
-
-  if HasOption('l', 'loadfile') then begin
-    WriteLn('Loading JSON...');
-    prog:=tgraph.create();
-    prog.loadConfigFromJSON('config_km.json'); //config.json
-    prog.loadFromJSONFile(paramStr(2));
-    prog.renderImageToFile('testimage.png');
-
-
-    //wait to show output
-    ReadLn();
-    Terminate;
-    Exit;
-  end;
-
-  { add your program here }
-
-  // stop program loop
   Terminate;
+  Exit;
 end;
 
 constructor TGraphRenderer.Create(TheOwner: TComponent);
@@ -75,18 +81,56 @@ begin
   inherited Destroy;
 end;
 
-procedure TGraphRenderer.WriteHelp;
+function TGraphRenderer.wantHelp: boolean;
+var i:integer;
 begin
-  { add your help code here }
-  writeln('Usage: ', ExeName, ' -h to | show this info');
-  writeln('Usage: ', ExeName, ' -l <filepath to json> | to load Graph');
+  // Prüft alle übergebenen Parameter, ob einer von Ihnen die Hilfe aufruft
+  // ParamStr(0) enthält immer Pfad und Dateiname
+  for i := 1 to ParamCount do
+  begin
+    // Wandelt den Parameter in Kleinbuchstaben um
+    case LowerCase(ParamStr(i)) of
+      '-?', '--?', '/?':
+        Result := True;
+      '-h', '--h', '/h':
+        Result := True;
+      '-help', '--help', '/help':
+        Result := True;
+      '-hilfe', '--hilfe', '/hilfe':
+        Result := True;
+      else
+        Result := False;
+    end;
+  end;
+end;
+
+procedure TGraphRenderer.displayHelp;
+begin
+  writeln('Usage: ', extractfilename(ExeName), '   -h  or  -help   | to show this info');
+  writeln('Usage: ', extractfilename(ExeName), '   -l <filepath to json> or  -load <filepath to json> | to load Graph');
+  writeln('Usage: ', extractfilename(ExeName), '   -c <filepath to config> or  -config <filepath to config> | to use custom cofigfile');
+  writeln('Usage: ', extractfilename(ExeName), '   -a  or  -automatic   | the program runs without user input');
+end;
+
+function TGraphRenderer.getParam(key: string; shortkey: string; out
+  value: string): boolean;
+var i:integer;
+begin
+  result:=false;
+  for i:=1 to paramcount do begin
+    if (LowerCase(ParamStr(i))=key) or(LowerCase(ParamStr(i))=shortkey) then begin
+       result:=true;
+       if (i+1)<=paramcount then value:=ParamStr(i+1)
+       else value:='';
+    end;
+  end;
 end;
 
 var
   Application: TGraphRenderer;
 begin
   Application:=TGraphRenderer.Create(nil);
-  Application.Title:='GraphRenderer';
+  Application.Title:='GraphRenderer2';
   Application.Run;
   Application.Free;
 end.
