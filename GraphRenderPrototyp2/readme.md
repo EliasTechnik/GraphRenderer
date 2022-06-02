@@ -82,4 +82,4 @@ Hauptsächlich wird folgendes definiert:
 
 - Die Konfiguration in Metern führt zu fehlerhaften Werten. Vermutlich ist die Konfiguratiosndatei fehlerhaft.
 - Zu hohe Auflösungen (kleine Pixelbreiten) führen zu einen ```OutOfMemoryError``` des Canvas. Das ist eine Limitierung der Zeichenbibliothek und wird sich nur durch Chunking der Karte realisieren lassen.
-- AKtuell stimmt das Seitenverhältnis der OGM nicht. Es ist leicht in der Breite gestreckt. Entweder ist das die fehlende Berücksichtigung des Erdelipsoiden oder auch ein fehler der Konfigurationsparameter.
+- Aktuell stimmt das Seitenverhältnis der OGM nicht. Es ist leicht in der Breite gestreckt. Entweder ist das die fehlende Berücksichtigung des Erdelipsoiden oder auch ein fehler der Konfigurationsparameter.
