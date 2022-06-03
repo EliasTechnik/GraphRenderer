@@ -130,7 +130,7 @@ var
   Application: TGraphRenderer;
 begin
   Application:=TGraphRenderer.Create(nil);
-  Application.Title:='GraphRenderer';
+  Application.Title:='GraphRenderer2';
   Application.Run;
   Application.Free;
 end.

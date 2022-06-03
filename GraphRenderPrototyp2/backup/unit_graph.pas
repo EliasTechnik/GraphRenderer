@@ -284,7 +284,7 @@ begin
     begin
       pen.mode    := pmCopy;
       pen.style   := psSolid;
-      pen.width   := 20 //round(iwidth*(1/pixelwidth));      //disabled becaus of bad scaling //todo set way width
+      pen.width   := 30; //round(iwidth*(1/pixelwidth));      //disabled becaus of bad scaling //todo set way width
       pen.FPColor := TColorToFPColor(rgbtocolor(255,255,255));  //todo: generate costs
     end;
 

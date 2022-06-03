@@ -29,6 +29,11 @@ type t3D=record
      z:double;
 end;
 
+type t2d=record
+     x:qword;
+     y:qword;
+end;
+
 type tRay=record
      origin:t3D;
      direction:t3D;
