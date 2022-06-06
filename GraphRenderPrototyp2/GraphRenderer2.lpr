@@ -6,7 +6,7 @@ uses
   {$IFDEF UNIX}{$IFDEF UseCThreads}
   cthreads,
   {$ENDIF}{$ENDIF}
-  Classes, SysUtils, JsonTools, CustApp, unit_graph, unit_paint;
+  Classes, SysUtils, JsonTools, CustApp, unit_graph, unit_paint, unit_graphmanager;
 
 type
 

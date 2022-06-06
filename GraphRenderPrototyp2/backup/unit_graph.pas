@@ -10,8 +10,6 @@ uses
 
 type tsurface=(sASPHALT,sPAVED,sUNKNOWN);
 
-
-
 type tWGS84=record
      lat:double;
      lon:double;
@@ -21,6 +19,11 @@ type tSphere=record
      radius:double;
      polarangle:double;
      azimuthalangle:double;
+end;
+
+type t2d=record
+     x:double;
+     y:double;
 end;
 
 type t3D=record
@@ -63,45 +66,25 @@ type
   private
     igps:tWGS84;
     i3d:t3d;
+    i2d:t2d; //set externaly
     iid:longint;
     iprojected:boolean;
+    function get_2d: t2d;
     function get_3d: t3d;
     function get_gps: twgs84;
     function get_id: longint;
     function get_projected: boolean;
+    procedure set_2d(AValue: t2d);
     procedure set_3d(AValue: t3d);
     procedure set_gps(AValue: twgs84);
   public
     constructor create(_id:longint;_gps:tWGS84);
     property gps:twgs84 read get_gps write set_gps;
     property p3d:t3d read get_3d write set_3d;
+    property p2d:t2d read get_2d write set_2d;
     property projected:boolean read get_projected;
     property ID:longint read get_id;
     procedure project(plane:ttangentplane;base:t3d;r:double);
-end;
-
-type
-
-  { tGraph }
-
- tGraph=class
-  private
-    ways:tlist;
-    map_corners:array [0..3] of t3d;
-    map_borders:array [0..3] of tray;
-    pixelwidth:double; //width of one pixel in m
-    origin:twgs84;
-    base:t3d;
-    plane:tTangentPlane;
-    radius:double;
-    baseunit:string;
-    scalefactor:integer;
-    procedure compute_edge(n,w,e,s:double);
-  public
-    constructor create();
-    procedure loadFromJSONFile(path:string);
-    procedure renderImageToFile(path:string);
-    procedure loadConfigFromJSON(path:string);
 end;
 
 type
@@ -115,15 +98,22 @@ type
     isurface:tsurface;
     iwidth:double;
     imaxspeed:double;
+    icost:byte;
+    iparent:pointer;
     function getWidth: double;
+    function get_cost: byte;
     function get_Node(index:integer): tGraphNode;
+    function get_parent: pointer;
     procedure setWidth(AValue: double);
+    procedure set_cost(AValue: byte);
   public
-    constructor create(_id:longint);
+    constructor create(_id:longint;_parent:pointer);
     procedure add_node(_node:tGraphNode);
     function paint(c:TFPCustomCanvas; ux:tray; uy:tray; pixelwidth:double):TFPCustomCanvas;
     property Nodes[index:integer]:tGraphNode read get_Node;
     property pWidth:double read getWidth write setWidth;
+    property pParent:pointer read get_parent;
+    property pCost:byte read get_cost write set_cost;
     function Count:integer;
 end;
 
@@ -244,9 +234,19 @@ begin
   result:=tGraphNode(inodes.Items[index]);
 end;
 
+function tWay.get_parent: pointer;
+begin
+  result:=iparent;
+end;
+
 function tWay.getWidth: double;
 begin
   result:=iwidth;
+end;
+
+function tWay.get_cost: byte;
+begin
+  result:=icost;
 end;
 
 procedure tWay.setWidth(AValue: double);
@@ -254,10 +254,16 @@ begin
   iwidth:=AValue;
 end;
 
-constructor tWay.create(_id: longint);
+procedure tWay.set_cost(AValue: byte);
+begin
+  icost:=AValue;
+end;
+
+constructor tWay.create(_id: longint; _parent: pointer);
 begin
   iid:=_id;
   inodes:=tlist.Create;
+  iparent:=_parent;
 end;
 
 procedure tWay.add_node(_node: tGraphNode);
@@ -270,12 +276,16 @@ var points:array of tpoint;
     x:integer;
     y:integer;
     i:integer;
+    p:t2d;
 begin
 //get array of points (tpoint)
   setlength(points,inodes.Count);
   for i:=0 to inodes.count-1 do begin
-    x:=round(distanceToRay(tgraphnode(inodes.Items[i]).get_3d,uy)*(1/pixelwidth));
-    y:=round(distanceToRay(tgraphnode(inodes.Items[i]).get_3d,ux)*(1/pixelwidth));
+    x:=round(distanceToRay(tgraphnode(inodes.Items[i]).p3d,uy)*(1/pixelwidth));
+    y:=round(distanceToRay(tgraphnode(inodes.Items[i]).p3d,ux)*(1/pixelwidth));
+    p.x:=x;
+    p.y:=y;
+    tgraphnode(inodes.items[i]).p2d:=p;
     points[i]:=tpoint.Create(x,y);
     Writeln('Way '+inttostr(iid)+' has point at x: '+inttostr(points[i].X)+' y: '+inttostr(points[i].Y));
   end;
@@ -299,203 +309,17 @@ begin
 end;
 
 
-{ tGraph }
-
-procedure tGraph.compute_edge(n, w, e, s: double);
-var gps:twgs84;
-    ray:tray;
-begin
-  gps.lat:=n;
-  gps.lon:=w;
-  ray:=getray(base,gpsto3d(gps,radius));
-  map_corners[0]:=get3donplane(ray,plane);      //north-west
-  gps.lat:=n;
-  gps.lon:=e;
-  ray:=getray(base,gpsto3d(gps,radius));
-  map_corners[1]:=get3donplane(ray,plane);      //north-east
-  gps.lat:=s;
-  gps.lon:=e;
-  ray:=getray(base,gpsto3d(gps,radius));
-  map_corners[2]:=get3donplane(ray,plane);      //south-east
-  gps.lat:=s;
-  gps.lon:=w;
-  ray:=getray(base,gpsto3d(gps,radius));
-  map_corners[3]:=get3donplane(ray,plane);      //south-west
-
-  Writeln('# The Plane NW corners are at ('+floattostr(map_corners[0].x)+'|'+floattostr(map_corners[0].y)+'|'+floattostr(map_corners[0].z)+')');
-  Writeln('# The Plane NE corners are at ('+floattostr(map_corners[1].x)+'|'+floattostr(map_corners[1].y)+'|'+floattostr(map_corners[1].z)+')');
-  Writeln('# The Plane SE corners are at ('+floattostr(map_corners[2].x)+'|'+floattostr(map_corners[2].y)+'|'+floattostr(map_corners[2].z)+')');
-  Writeln('# The Plane SW corners are at ('+floattostr(map_corners[3].x)+'|'+floattostr(map_corners[3].y)+'|'+floattostr(map_corners[3].z)+')');
-
-  map_borders[0]:=getray(map_corners[0],map_corners[1]);   //north
-  map_borders[1]:=getray(map_corners[1],map_corners[2]);   //east
-  map_borders[2]:=getray(map_corners[3],map_corners[2]);   //south
-  map_borders[3]:=getray(map_corners[0],map_corners[3]);   //west
-
-end;
-
-constructor tGraph.create();
-begin
-  ways:=tlist.Create;
-end;
-
-procedure tGraph.loadFromJSONFile(path: string);
-var j,graph,way,nd,tag:tjsonnode;
-    wi,nodes,t:integer;
-    w:tway;
-    k,v:string;
-    wgs84:twgs84;
-begin
-  j:=tjsonnode.Create;
-  j.LoadFromFile(path);
-  if j.find('graph/way',graph) then begin
-     graph:=graph.AsArray;
-     for wi:=0 to graph.Count-1 do begin
-        way:=graph.Child(wi);
-        w:=tway.create(strtoint(way.Find('@id').AsString));
-        nd:=way.Find('nd');
-        for nodes:=0 to nd.Count-1 do begin
-            DefaultFormatSettings.DecimalSeparator := '.';    //change to decimal point
-            wgs84.lat:=strtofloat(nd.Child(nodes).Find('@lat').AsString);
-            wgs84.lon:=strtofloat(nd.Child(nodes).Find('@lon').AsString);
-            //writeln('Node '+floattostr(wgs84.lat)+' '+floattostr(wgs84.lon)+' added');
-            w.add_node(tGraphNode.create(strtoint(nd.Child(nodes).Find('@id').AsString),wgs84));
-        end;
-        tag:=way.Find('tag');
-        for t:=0 to tag.count-1 do begin
-           k:=tag.child(t).Find('@k').AsString;
-           v:=tag.child(t).Find('@v').AsString;
-           if k='width' then w.pWidth:=strtofloat(v);
-           //TODO: parse other tags (surface, maxspeed, ...
-        end;
-        ways.Add(w);
-     end;
-  end;
-end;
-
-procedure tGraph.renderImageToFile(path: string);
-var
-    i,j,x,y,width,height:integer;
-    w:tway;
-    p:t3d;
-    canvas : TFPCustomCanvas;
-    image : TFPCustomImage;
-    writer : TFPCustomImageWriter;
-    n:tgraphnode;
-begin
-  //generate 3d coordiantes
-  n:=tway(ways.Items[0]).get_Node(0);
-  for i:=0 to ways.Count-1 do begin
-   w:=tway(ways.Items[i]);
-   for j:=0 to w.Count-1 do begin
-    w.get_Node(j).project(plane,base,radius);
-    Writeln('distance to prev. node:'+floattostr(distance3d(n.get_3d,w.get_Node(j).get_3d))+baseunit);
-    n:=w.get_Node(j);
-   end;
-  end;
-
-  //project 3d to 2d
-
-  //render image
-
-  { Create an image 1000x1000 pixels}
-  width:=round(distance3d(map_corners[0],map_corners[1])*(1/pixelwidth));
-  height:=round(distance3d(map_corners[0],map_corners[3])*(1/pixelwidth));
-  Writeln('Output canvas dimmension (w,h): '+inttostr(width)+','+inttostr(height));
-
-  image := TFPMemoryImage.Create (width,height);   //todo: set size
-
-  { Attach the image to the canvas }
-  Canvas := TFPImageCanvas.Create (image);
-
-
-  //draw points
-  for i:=0 to ways.count-1 do begin
-   canvas:=tway(ways.items[i]).paint(canvas,map_borders[0],map_borders[3],pixelwidth);
-  end;
-
-  {
-  with canvas do
-  begin
-    pen.mode    := pmCopy;
-    pen.style   := psSolid;
-    pen.width   := 1;
-    pen.FPColor := TColorToFPColor(rgbtocolor(255,255,255));
-  end;
-  //draw random points
-   randomize();
-   //c.Brush.Color:=rgbtocolor(255,255,255);
-   for i:=0 to 10 do begin
-      x1:=round((canvas.Width-10)*random());
-      y1:=round((canvas.Height-10)*random());
-      canvas.Ellipse(x1,y1,x1+10,y1+10);
-   end;
-
-   }
-  { Create the writer }
-  Writer := TFPWriterPNG.Create;
-
-  { Save to file }
-  image.SaveToFile ('DrawTest.png', writer);
-
-  { Clean up! }
-  Canvas.Free;
-  image.Free;
-  writer.Free;
-end;
-
-procedure tGraph.loadConfigFromJSON(path: string);
-var j,res:tjsonnode;
-    north,west,south,east:double;
-begin
-    j:=tjsonnode.Create;
-    j.LoadFromFile(path);
-    DefaultFormatSettings.DecimalSeparator := '.';    //change to decimal point
-    if j.Find('WGS84/unit',res) then begin
-       baseunit:=res.AsString;
-       Writeln('# Baseunit: '+baseunit);
-       if baseunit='km' then scalefactor:=100;
-       if baseunit='m' then scalefactor:=1;
-    end
-    else baseunit:='m';
-    if j.Find('WGS84/radius',res) then begin
-       radius:=strtofloat(res.AsString);
-       Writeln('# Loaded radius: '+floattostr(radius)+baseunit);
-    end
-    else radius:=earth_radius;
-    if j.Find('plane/origin/WGS84/lat',res) then begin
-       origin.lat:=strtofloat(res.AsString);
-       if j.Find('plane/origin/WGS84/lon',res) then begin
-          origin.lon:=strtofloat(res.AsString);
-          Writeln('# Loaded origin: lat: '+floattostr(origin.lat)+'° lon: '+floattostr(origin.lon)+'°');
-          plane:=genplane(gpsto3d(origin,radius));
-
-          Writeln('# Inverted Origin: polar: '+floattostr(invertpoint(gpstosphere(origin,radius)).polarangle)+'° azimut: '+floattostr(invertpoint(gpstosphere(origin,radius)).azimuthalangle)+'°');
-          base:=sphereto3d(invertPoint(gpstosphere(origin,radius)));
-          Writeln('# The Plane Origin is at ('+floattostr(gpsto3d(origin,radius).x)+'|'+floattostr(gpsto3d(origin,radius).y)+'|'+floattostr(gpsto3d(origin,radius).z)+')');
-          Writeln('# The Plane is (x: '+floattostr(plane.normal.x)+'|y: '+floattostr(plane.normal.y)+'|z: '+floattostr(plane.normal.z)+')');
-          Writeln('# The Projection Base is at ('+floattostr(base.x)+'|'+floattostr(base.y)+'|'+floattostr(base.z)+')');
-       end;
-    end;
-    if j.Find('output/pixelwidth',res) then begin
-       pixelwidth:=strtofloat(res.AsString);
-       Writeln('# Set pixelwidth to '+floattostr(pixelwidth)+' m');
-    end;
-    if j.Find('plane/edge/WGS84/north_lat',res) then north:=strtofloat(res.AsString);
-    if j.Find('plane/edge/WGS84/south_lat',res) then south:=strtofloat(res.AsString);
-    if j.Find('plane/edge/WGS84/west_lon',res) then west:=strtofloat(res.AsString);
-    if j.Find('plane/edge/WGS84/east_lon',res) then east:=strtofloat(res.AsString);
-
-    compute_edge(north,west,east,south);
-
-end;
-
 { tGraphNode }
 
 
 function tGraphNode.get_3d: t3d;
 begin
  if iprojected then result:=i3d;
+end;
+
+function tGraphNode.get_2d: t2d;
+begin
+  result:=i2d;
 end;
 
 function tGraphNode.get_id: longint;
@@ -506,6 +330,11 @@ end;
 function tGraphNode.get_projected: boolean;
 begin
  result:=iprojected;
+end;
+
+procedure tGraphNode.set_2d(AValue: t2d);
+begin
+ i2d:=AValue;
 end;
 
 procedure tGraphNode.set_3d(AValue: t3d);
