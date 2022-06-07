@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <ProjectOptions>
-    <Version Value="11"/>
+    <Version Value="12"/>
     <PathDelim Value="\"/>
     <General>
       <Flags>
         <MainUnitHasCreateFormStatements Value="False"/>
         <MainUnitHasScaledStatement Value="False"/>
+        <CompatibilityMode Value="True"/>
       </Flags>
       <SessionStorage Value="InProjectDir"/>
-      <MainUnit Value="0"/>
       <Title Value="GraphRenderer"/>
       <UseAppBundle Value="False"/>
       <ResourceType Value="res"/>
@@ -23,12 +23,14 @@
     </PublishOptions>
     <RunParams>
       <FormatVersion Value="2"/>
-      <Modes Count="0"/>
     </RunParams>
-    <RequiredPackages Count="1">
+    <RequiredPackages Count="2">
       <Item1>
-        <PackageName Value="LCLBase"/>
+        <PackageName Value="BGRABitmapPack4NoGUI"/>
       </Item1>
+      <Item2>
+        <PackageName Value="LCLBase"/>
+      </Item2>
     </RequiredPackages>
     <Units Count="5">
       <Unit0>

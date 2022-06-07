@@ -46,7 +46,7 @@ Allein aus den OSM Daten kann noch keine OGM generiert werden. Um Kontrolle übe
     {
         "WGS84":{
             "radius":"6378.137",
-            "unit":"km"
+            "baseunit":"km"
         },
         "plane":{
             "origin":{
@@ -66,20 +66,29 @@ Allein aus den OSM Daten kann noch keine OGM generiert werden. Um Kontrolle übe
         },
         "output":{
             "pixelwidth":"0.01",
-            "unit":"m"
+            "subchunksize":"15"
         }
     }
 
 Hauptsächlich wird folgendes definiert:
-- Radius der Erde am Äquator + Einheit
+- Radius der Erde am Äquator
+- Einheit aller Konfigurationsparameter (aktuell wird km und m unterstützt)
 - Auflagepunkt der Tangentialebene im WGS84 Format
 - "Kanten" der Karte. Diese definieren letztendlich den Bereich der gerendert werden soll. **Achtung: Es wird nicht geprüft ob ein Knoten innerhalb des Renderbereiches liegt. Daher sollten alle Knoten innerhalb des Bereichs liegen. Ist dem nicht so kann es zu Fehlern in der Karte oder zu einen Abbbruch des Programms kommen.**
 - Ausgabeparameter:
     - Pixelbreite: Breite eines Pixels in der OGM
-    - Einheit: Einheit der Pixelbreite (aktuell noch nicht implementiert, es wird immer von Meter ausgegangen)
+    - Subchunkgröße in m
 
 ## Bekannte Bugs und fehlerhaftes Verhalten
 
 - Die Konfiguration in Metern führt zu fehlerhaften Werten. Vermutlich ist die Konfiguratiosndatei fehlerhaft.
 - Zu hohe Auflösungen (kleine Pixelbreiten) führen zu einen ```OutOfMemoryError``` des Canvas. Das ist eine Limitierung der Zeichenbibliothek und wird sich nur durch Chunking der Karte realisieren lassen.
 - Aktuell stimmt das Seitenverhältnis der OGM nicht. Es ist leicht in der Breite gestreckt. Entweder ist das die fehlende Berücksichtigung des Erdelipsoiden oder auch ein fehler der Konfigurationsparameter.
+- **Arbeitet man in Metern ergeben sich fehlerhafte Distanzen zwischen den Punkten. Mögliche Fehlerquellen dafür sind:**
+    - Konversation von WGS84 zu Kugel
+    - Invertierung Origin zu Base (ein falsch gesetzter Base führt zur verfälschung der Ebenenkoordinaten) --> Überprüfen über die Distanz (muss 2x der Erdradius sein)
+    - Konstruktion der Tangentialbene an Origin. Eine falsch angelegte Ebene kann zu großen Fehlern führen (sehr wahrscheinlich) --> Am besten überprüfen in dem die Distanz von einen Punkt zu Origin ausgewertet wird. 
+
+### Quellen
+
+[WGS84](https://confluence.qps.nl/qinsy/latest/en/world-geodetic-system-1984-wgs84-182618391.html)

@@ -21,10 +21,12 @@ type
     origin:twgs84;
     base:t3d;
     plane:tTangentPlane;
-    radius:double;
+    wgs84:twgs84params;
     baseunit:string;
     scalefactor:integer;
+    subchunksize:double;
     mp:tmappainter;
+    jconfig:tjsonnode;
     procedure compute_edge(n,w,e,s:double);
     function get_baseunit: string;
     function get_pixelwidth: double;
@@ -32,7 +34,7 @@ type
   public
     constructor create();
     procedure loadFromJSONFile(path:string);
-    procedure renderImageToFile(path:string);
+    procedure render(path:string;prefix:string);  //renders the chunks to a specified ouput folder
     procedure loadConfigFromJSON(path:string);
     property pPixelwidth:double read get_pixelwidth;
     property pScalefactor:integer read get_scalefactor;
@@ -49,19 +51,19 @@ var gps:twgs84;
 begin
   gps.lat:=n;
   gps.lon:=w;
-  ray:=getray(base,gpsto3d(gps,radius));
+  ray:=getray(base,gpsto3d(gps,wgs84));
   map_corners[0]:=get3donplane(ray,plane);      //north-west
   gps.lat:=n;
   gps.lon:=e;
-  ray:=getray(base,gpsto3d(gps,radius));
+  ray:=getray(base,gpsto3d(gps,wgs84));
   map_corners[1]:=get3donplane(ray,plane);      //north-east
   gps.lat:=s;
   gps.lon:=e;
-  ray:=getray(base,gpsto3d(gps,radius));
+  ray:=getray(base,gpsto3d(gps,wgs84));
   map_corners[2]:=get3donplane(ray,plane);      //south-east
   gps.lat:=s;
   gps.lon:=w;
-  ray:=getray(base,gpsto3d(gps,radius));
+  ray:=getray(base,gpsto3d(gps,wgs84));
   map_corners[3]:=get3donplane(ray,plane);      //south-west
 
   Writeln('# The Plane NW corners are at ('+floattostr(map_corners[0].x)+'|'+floattostr(map_corners[0].y)+'|'+floattostr(map_corners[0].z)+')');
@@ -101,7 +103,7 @@ var j,graph,way,nd,tag:tjsonnode;
     wi,nodes,t:integer;
     w:tway;
     k,v:string;
-    wgs84:twgs84;
+    gps:twgs84;
 begin
   j:=tjsonnode.Create;
   j.LoadFromFile(path);
@@ -113,10 +115,10 @@ begin
         nd:=way.Find('nd');
         for nodes:=0 to nd.Count-1 do begin
             DefaultFormatSettings.DecimalSeparator := '.';    //change to decimal point
-            wgs84.lat:=strtofloat(nd.Child(nodes).Find('@lat').AsString);
-            wgs84.lon:=strtofloat(nd.Child(nodes).Find('@lon').AsString);
+            gps.lat:=strtofloat(nd.Child(nodes).Find('@lat').AsString);
+            gps.lon:=strtofloat(nd.Child(nodes).Find('@lon').AsString);
             //writeln('Node '+floattostr(wgs84.lat)+' '+floattostr(wgs84.lon)+' added');
-            w.add_node(tGraphNode.create(strtoint(nd.Child(nodes).Find('@id').AsString),wgs84));
+            w.add_node(tGraphNode.create(strtoint(nd.Child(nodes).Find('@id').AsString),gps));
         end;
         tag:=way.Find('tag');
         for t:=0 to tag.count-1 do begin
@@ -130,7 +132,7 @@ begin
   end;
 end;
 
-procedure tGraph.renderImageToFile(path: string);
+procedure tGraph.render(path: string; prefix: string);
 var
     i,j,x,y,width,height:integer;
     w:tway;
@@ -139,70 +141,103 @@ var
     image : TFPCustomImage;
     writer : TFPCustomImageWriter;
     n:tgraphnode;
+    outnode,context:tjsonnode;
 begin
   //generate 3d coordiantes
   n:=tway(ways.Items[0]).Nodes[0];
   for i:=0 to ways.Count-1 do begin
    w:=tway(ways.Items[i]);
    for j:=0 to w.Count-1 do begin
-    w.Nodes[j].project(plane,base,radius);
-    Writeln('distance to prev. node:'+floattostr(distance3d(n.p3d,w.get_Node(j).p3d))+baseunit);
+    w.Nodes[j].project(plane,base,wgs84);
+    //Writeln('distance to prev. node:'+floattostr(distance3d(n.p3d,w.Nodes[j].p3d))+baseunit);
     n:=w.Nodes[j];
    end;
   end;
 
   //build chunkmap
-  mp.create(1000);  //1000x1000 for now -->better: get it from config file or command input
+  mp:=tmappainter.create(round(subchunksize*(1/pixelwidth)));
 
-  //save chunks image
+  //render
+  for i:=0 to ways.Count-1 do begin
+   w:=tway(ways.items[i]);
+   w.projecttoplane(map_borders[0],map_borders[3],pixelwidth*scalefactor); //maybe switch borders in case of rotated map
+   mp.paintWay(w);
+  end;
 
-  width:=round(distance3d(map_corners[0],map_corners[1])*(1/pixelwidth));
-  height:=round(distance3d(map_corners[0],map_corners[3])*(1/pixelwidth));
-  Writeln('Output canvas dimmension (w,h): '+inttostr(width)+','+inttostr(height));
-
+  //save chunks to folder
+  outnode:=mp.saveToFolder(path,prefix);
+  context:=outnode.Add('context');
+  context.Force('WGS84/semi-major-axis').AsString:=jconfig.Find('WGS84/semi-major-axis').AsString;
+  context.Force('WGS84/semi-minor-axis').AsString:=jconfig.Find('WGS84/semi-minor-axis').AsString;
+  context.Force('WGS84/baseunit').AsString:=jconfig.Find('WGS84/baseunit').AsString;
+  context.Force('plane/origin/WGS84/lat').AsString:=jconfig.Find('plane/origin/WGS84/lat').AsString;
+  context.Force('plane/origin/WGS84/lon').AsString:=jconfig.Find('plane/origin/WGS84/lon').AsString;
+  context.Force('plane/edge/WGS84/north_lat').AsString:=jconfig.Find('plane/edge/WGS84/north_lat').AsString;
+  context.Force('plane/edge/WGS84/south_lat').AsString:=jconfig.Find('plane/edge/WGS84/south_lat').AsString;
+  context.Force('plane/edge/WGS84/west_lon').AsString:=jconfig.Find('plane/edge/WGS84/west_lon').AsString;
+  context.Force('plane/edge/WGS84/east_lon').AsString:=jconfig.Find('plane/edge/WGS84/east_lon').AsString;
+  context.Force('output/pixelwidth').AsString:=jconfig.Find('output/pixelwidth').AsString;
+  context.Force('output/subchunksize').AsString:=jconfig.Find('output/subchunksize').AsString;
+  outnode.SaveToFile(path+'subchunk_index.json');
 end;
 
 procedure tGraph.loadConfigFromJSON(path: string);
-var j,res:tjsonnode;
+var res:tjsonnode;
     north,west,south,east:double;
 begin
-    j:=tjsonnode.Create;
-    j.LoadFromFile(path);
+    jconfig:=tjsonnode.Create;
+    jconfig.LoadFromFile(path);
     DefaultFormatSettings.DecimalSeparator := '.';    //change to decimal point
-    if j.Find('WGS84/unit',res) then begin
+    if jconfig.Find('WGS84/unit',res) then begin
        baseunit:=res.AsString;
        Writeln('# Baseunit: '+baseunit);
        if baseunit='km' then scalefactor:=100;
        if baseunit='m' then scalefactor:=1;
     end
-    else baseunit:='m';
-    if j.Find('WGS84/radius',res) then begin
-       radius:=strtofloat(res.AsString);
-       Writeln('# Loaded radius: '+floattostr(radius)+baseunit);
-    end
-    else radius:=earth_radius;
-    if j.Find('plane/origin/WGS84/lat',res) then begin
+    else begin
+     baseunit:='m';
+     scalefactor:=1;
+    end;
+    if jconfig.Find('WGS84/semi-major-axis',res) then begin
+       wgs84.semi_major_axis:=strtofloat(res.AsString);
+       Writeln('# Loaded semi-major-axis: '+floattostr(wgs84.semi_major_axis)+baseunit);
+    end;
+    if jconfig.Find('WGS84/semi-minor-axis',res) then begin
+       wgs84.semi_minor_axis:=strtofloat(res.AsString);
+       Writeln('# Loaded semi-minor-axis: '+floattostr(wgs84.semi_minor_axis)+baseunit);
+    end;
+    wgs84.eccentricity_square:=(power(wgs84.semi_major_axis,2)-power(wgs84.semi_minor_axis,2))/(power(wgs84.semi_major_axis,2));
+    Writeln('# Computed eccentricity_square: '+floattostr(wgs84.eccentricity_square));
+    if jconfig.Find('plane/origin/WGS84/lat',res) then begin
        origin.lat:=strtofloat(res.AsString);
-       if j.Find('plane/origin/WGS84/lon',res) then begin
+       if jconfig.Find('plane/origin/WGS84/lon',res) then begin
           origin.lon:=strtofloat(res.AsString);
           Writeln('# Loaded origin: lat: '+floattostr(origin.lat)+'° lon: '+floattostr(origin.lon)+'°');
-          plane:=genplane(gpsto3d(origin,radius));
-
-          Writeln('# Inverted Origin: polar: '+floattostr(invertpoint(gpstosphere(origin,radius)).polarangle)+'° azimut: '+floattostr(invertpoint(gpstosphere(origin,radius)).azimuthalangle)+'°');
-          base:=sphereto3d(invertPoint(gpstosphere(origin,radius)));
-          Writeln('# The Plane Origin is at ('+floattostr(gpsto3d(origin,radius).x)+'|'+floattostr(gpsto3d(origin,radius).y)+'|'+floattostr(gpsto3d(origin,radius).z)+')');
+          plane:=genplane(gpsto3d(origin,wgs84));
+          base:=invertPoint(gpsto3d(origin,wgs84));
+          Writeln('# The Plane Origin is at ('+floattostr(gpsto3d(origin,wgs84).x)+'|'+floattostr(gpsto3d(origin,wgs84).y)+'|'+floattostr(gpsto3d(origin,wgs84).z)+')');
           Writeln('# The Plane is (x: '+floattostr(plane.normal.x)+'|y: '+floattostr(plane.normal.y)+'|z: '+floattostr(plane.normal.z)+')');
           Writeln('# The Projection Base is at ('+floattostr(base.x)+'|'+floattostr(base.y)+'|'+floattostr(base.z)+')');
+          Writeln('# The distance between Origin and Base is '+floattostr(distance3d(base,gpsto3d(origin,wgs84)))+baseunit);
        end;
     end;
-    if j.Find('output/pixelwidth',res) then begin
+    if jconfig.Find('output/pixelwidth',res) then begin
        pixelwidth:=strtofloat(res.AsString);
        Writeln('# Set pixelwidth to '+floattostr(pixelwidth)+' m');
     end;
-    if j.Find('plane/edge/WGS84/north_lat',res) then north:=strtofloat(res.AsString);
-    if j.Find('plane/edge/WGS84/south_lat',res) then south:=strtofloat(res.AsString);
-    if j.Find('plane/edge/WGS84/west_lon',res) then west:=strtofloat(res.AsString);
-    if j.Find('plane/edge/WGS84/east_lon',res) then east:=strtofloat(res.AsString);
+    if jconfig.Find('plane/edge/WGS84/north_lat',res) then north:=strtofloat(res.AsString);
+    if jconfig.Find('plane/edge/WGS84/south_lat',res) then south:=strtofloat(res.AsString);
+    if jconfig.Find('plane/edge/WGS84/west_lon',res) then west:=strtofloat(res.AsString);
+    if jconfig.Find('plane/edge/WGS84/east_lon',res) then east:=strtofloat(res.AsString);
+
+    if jconfig.Find('output/subchunksize',res) then begin
+       subchunksize:=strtofloat(res.AsString);
+       Writeln('# Set subchunksize to '+floattostr(subchunksize)+baseunit+'. Therfore each chunk has a height and width of '+inttostr(round(subchunksize*(1/pixelwidth)))+' pixel.');
+    end
+    else begin
+       subchunksize:=10.0;
+       Writeln('# No subchunksize was found. Using default size of '+floattostr(subchunksize)+baseunit+'. Therfore each chunk has a height and width of '+inttostr(round(subchunksize*(1/pixelwidth)))+' pixel.');
+    end;
 
     compute_edge(north,west,east,south);
 

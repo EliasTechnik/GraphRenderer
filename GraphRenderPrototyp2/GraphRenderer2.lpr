@@ -31,6 +31,7 @@ var
   prog:tgraph;
   v:string;
   keepalive:boolean;
+  outputpath:string;
 begin
   keepalive:=true;
   if paramcount>1 then begin
@@ -48,11 +49,15 @@ begin
         WriteLn('# Using default config: "'+v+'"');
         prog.loadConfigFromJSON(v);
       end;
+      if getParam('-s','-save',v) then begin
+        Writeln('# Output path: '+v);
+        outputpath:=v;
+      end;
       if getParam('-l','-load',v) then begin
         WriteLn('# Loading JSON Graph data from "'+v+'"');
         prog.loadFromJSONFile(paramStr(2));
-        WriteLn('# Render OCM...');
-        prog.renderImageToFile('testimage.png');
+        WriteLn('# Render OCM Chunks...');
+        prog.render(outputpath,'subchunk_');
       end
       else begin
         WriteLn('# Error: No graph data was found.');
@@ -110,6 +115,7 @@ begin
   writeln('Usage: ', extractfilename(ExeName), '   -l <filepath to json> or  -load <filepath to json> | to load Graph');
   writeln('Usage: ', extractfilename(ExeName), '   -c <filepath to config> or  -config <filepath to config> | to use custom cofigfile');
   writeln('Usage: ', extractfilename(ExeName), '   -a  or  -automatic   | the program runs without user input');
+  writeln('Usage: ', extractfilename(ExeName), '   -s <path to outputfolder> or  -save <path to outputfolder> | specifies thze folder where the subchunks are saved');
 end;
 
 function TGraphRenderer.getParam(key: string; shortkey: string; out

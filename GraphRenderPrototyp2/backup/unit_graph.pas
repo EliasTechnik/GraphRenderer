@@ -15,6 +15,12 @@ type tWGS84=record
      lon:double;
 end;
 
+type twgs84params=record
+     eccentricity_square:double;
+     semi_major_axis:double;
+     semi_minor_axis:double;
+end;
+
 type tSphere=record
      radius:double;
      polarangle:double;
@@ -22,8 +28,8 @@ type tSphere=record
 end;
 
 type t2d=record
-     x:double;
-     y:double;
+     x:qword;
+     y:qword;
 end;
 
 type t3D=record
@@ -42,17 +48,14 @@ type tTangentPlane=record
      argument:double; //c (or radius^2)
 end;
 
-const earth_radius: double = 6378137;     //in m
-      earth_vert_axis: double = 6356752.314245; // in m
-      erth_inverse_flattening: double = 298.257223563; // 1/f
-
-
-function gpstosphere(gps:twgs84; r:double):tsphere;  //converts WGS84 to Spherical
-function sphereTo3d(p:tsphere):t3d;                                 //converts Spherical to 3d Carthesian
-function gpsTo3d(gps:twgs84; r:double):t3d;          //converts WGS84 to 3d Carthesian
+//function gpstosphere(gps:twgs84; r:double):tsphere;  //converts WGS84 to Spherical
+function gpsto3d(gps:twgs84;params:twgs84params):t3d;  //converts WGS84 to sphere based on the elipsoid
+//function sphereTo3d(p:tsphere):t3d;                                 //converts Spherical to 3d Carthesian
+//function gpsTo3d(gps:twgs84; r:double):t3d;          //converts WGS84 to 3d Carthesian
 function get3dOnPlane(ray:tray; plane:ttangentplane):t3d;                     //projects ray on plane and returns Intersection with plane
 function genPlane(p:t3d):tTangentPlane;                                       //generates Tangential Plane at Point p (It assumes that the Ball has its center at (0,0,0)
 function invertPoint(p:tsphere):tsphere;                            //invertiert p
+function invertPoint(p:t3d):t3d;
 function getRay(a:t3d;b:t3d):tray;
 function distance3D(a:t3d;b:t3d):double;             //returns Distance between 2 Points
 function angleBetweenPoints(a:t3d;b:t3d;base:t3d):double;      //calculates smallest Angle between two Rays
@@ -84,7 +87,7 @@ type
     property p2d:t2d read get_2d write set_2d;
     property projected:boolean read get_projected;
     property ID:longint read get_id;
-    procedure project(plane:ttangentplane;base:t3d;r:double);
+    procedure project(plane:ttangentplane;base:t3d;params:twgs84params);
 end;
 
 type
@@ -109,7 +112,7 @@ type
   public
     constructor create(_id:longint;_parent:pointer);
     procedure add_node(_node:tGraphNode);
-    function paint(c:TFPCustomCanvas; ux:tray; uy:tray; pixelwidth:double):TFPCustomCanvas;
+    procedure projecttoplane(ux:tray; uy:tray; pixelwidth:double);
     property Nodes[index:integer]:tGraphNode read get_Node;
     property pWidth:double read getWidth write setWidth;
     property pParent:pointer read get_parent;
@@ -119,6 +122,7 @@ end;
 
 implementation
 
+{
 function gpstosphere(gps: twgs84; r: double): tsphere;
 begin
   result.azimuthalangle:=gps.lon;
@@ -127,7 +131,16 @@ begin
   //Writeln('gpsToSphere: Azimuth: '+floattostr(result.azimuthalangle)
   //+'° Polar: '+floattostr(result.polarangle)+'° r: '+floattostr(result.radius));
 end;
-
+}
+function gpsto3d(gps: twgs84; params: twgs84params): t3d;
+var n:double;
+begin
+  n:=(params.semi_major_axis)/(sqrt((1-(params.eccentricity_square*power(sin(gps.lat),2)))));
+  result.x:=n*cos(degtorad(gps.lat))*cos(degtorad(gps.lon));
+  result.y:=n*cos(degtorad(gps.lat))*sin(degtorad(gps.lon));
+  result.z:=(n*(1-params.eccentricity_square))*sin(degtorad(gps.lat));
+end;
+{
 function sphereTo3d(p: tsphere): t3d;
 begin
   //Writeln('sphereTo3d: Polar: '+floattostr(p.polarangle)
@@ -135,19 +148,24 @@ begin
   result.x:=p.radius*cos(p.azimuthalangle)*sin(p.polarangle);
   result.y:=p.radius*sin(p.azimuthalangle)*sin(p.polarangle);
   result.z:=p.radius*cos(p.polarangle);
+  //result.x:=p.radius*cos(p.azimuthalangle)*cos(p.polarangle);
+  //result.y:=p.radius*cos(p.azimuthalangle)*sin(p.polarangle);
+  //result.z:=p.radius*sin(p.azimuthalangle);
   //Writeln('sphereTo3d: ('+floattostr(result.x)+'|'+floattostr(result.y)+'|'+floattostr(result.z)+')');
 end;
-
+}
+{
 function gpsTo3d(gps: twgs84; r: double): t3d;
 begin
   result:=sphereto3d(gpstosphere(gps,r));
 end;
+}
 
 function get3dOnPlane(ray: tray; plane: ttangentplane): t3d;
-var r:double;
+var t:double;
 begin
- //calculate r
- r:=(((plane.normal.x*ray.origin.x)*-1)
+ //calculate t
+ t:=(((plane.normal.x*ray.origin.x)*-1)
  -(plane.normal.y*ray.origin.y)
  -(plane.normal.z*ray.origin.z)+plane.argument)
  /
@@ -155,9 +173,9 @@ begin
  +(plane.normal.y*ray.direction.y)
  +(plane.normal.z*ray.direction.z));
  //get point on plane
- result.x:=ray.origin.x+(r*ray.direction.x);
- result.y:=ray.origin.y+(r*ray.direction.y);
- result.z:=ray.origin.z+(r*ray.direction.z);
+ result.x:=ray.origin.x+(t*ray.direction.x);
+ result.y:=ray.origin.y+(t*ray.direction.y);
+ result.z:=ray.origin.z+(t*ray.direction.z);
 end;
 
 function genPlane(p: t3d): tTangentPlane;
@@ -182,6 +200,13 @@ begin
  result.radius:=p.radius;
  //Writeln('InvertPoint: Azimuth: '+floattostr(result.azimuthalangle)
   //+'° Polar: '+floattostr(result.polarangle)+'°');
+end;
+
+function invertPoint(p: t3d): t3d;
+begin
+  result.x:=p.x*(-1);
+  result.y:=p.y*(-1);
+  result.z:=p.z*(-1);
 end;
 
 function getRay(a: t3d; b: t3d): tray;
@@ -271,36 +296,17 @@ begin
   inodes.Add(_node);
 end;
 
-function tWay.paint(c: TFPCustomCanvas; ux:tray; uy:tray; pixelwidth:double): TFPCustomCanvas;
-var points:array of tpoint;
-    x:integer;
-    y:integer;
-    i:integer;
+procedure tWay.projecttoplane(ux:tray; uy:tray; pixelwidth:double);
+var i:integer;
     p:t2d;
 begin
 //get array of points (tpoint)
-  setlength(points,inodes.Count);
   for i:=0 to inodes.count-1 do begin
-    x:=round(distanceToRay(tgraphnode(inodes.Items[i]).p3d,uy)*(1/pixelwidth));
-    y:=round(distanceToRay(tgraphnode(inodes.Items[i]).p3d,ux)*(1/pixelwidth));
-    p.x:=x;
-    p.y:=y;
+    p.x:=round(distanceToRay(tgraphnode(inodes.Items[i]).p3d,uy)*(1/pixelwidth));
+    p.y:=round(distanceToRay(tgraphnode(inodes.Items[i]).p3d,ux)*(1/pixelwidth));
     tgraphnode(inodes.items[i]).p2d:=p;
-    points[i]:=tpoint.Create(x,y);
-    Writeln('Way '+inttostr(iid)+' has point at x: '+inttostr(points[i].X)+' y: '+inttostr(points[i].Y));
+    Writeln('Way '+inttostr(iid)+' has point at x: '+inttostr(p.x)+' y: '+inttostr(p.y));
   end;
-  //setup pen
-   with c do
-    begin
-      pen.mode    := pmCopy;
-      pen.style   := psSolid;
-      pen.width   := 30; //round(iwidth*(1/pixelwidth));      //disabled becaus of bad scaling //todo set way width
-      pen.FPColor := TColorToFPColor(rgbtocolor(255,255,255));  //todo: generate costs
-    end;
-
-  //draw polyline
-  c.Polyline(points); //Bezier Line is also possible
-  result:=c;
 end;
 
 function tWay.Count: integer;
@@ -362,11 +368,13 @@ begin
   result:=igps;
 end;
 
-procedure tGraphNode.project(plane: ttangentplane; base: t3d; r: double);
+procedure tGraphNode.project(plane: ttangentplane; base: t3d;
+  params: twgs84params);
 var ray:tray;
 begin
  //construct ray
- ray:=getRay(base,gpsto3d(igps,r));
+ ray:=getRay(base,gpsto3d(igps,params));
+ //get point on plane
  i3d:=get3dOnPlane(ray,plane);
  iprojected:=true;
  writeln('Projected Node '+inttostr(iid)+' to ( '+

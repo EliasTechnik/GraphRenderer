@@ -1,9 +1,9 @@
 {
     "WGS84":{
-        "radius":"6378137.0",
-        "vert_axis":"6356752.314245",
-        "inverse_flattening":"298.257223563",
-        "unit":"m"
+        "semi-major-axis":"6378137.0",
+        "semi-minor-axis":"6356752.314245",
+        "flattening":"298.257223563",
+        "baseunit":"m"
     },
     "plane":{
         "origin":{
@@ -22,7 +22,7 @@
         }
     },
     "output":{
-        "pixelwidth":"10",
-        "unit":"m"
+        "pixelwidth":"0.01",
+        "subchunksize":"10"
     }
 }
