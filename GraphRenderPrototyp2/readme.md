@@ -28,7 +28,7 @@ Lazarus mit ObjectPascal ist Platformübergreifend und unterstützt viele Betrie
 
 ## Ausführen
 
-Da das Programm Startparameter erwartet lässt es sich nur über die Komandozeile ausführen. Navigiere mit einem Terminal deiner Wahl in das Programmverzeichnis. Mit ```GraphRenderer2.exe -c config.json -l test_data/default.json -a -s output/ ``` wird die Anwendung gestartet, die Konfiguration und Graphen geladen und anschließend in den Ordner ```output``` gerendert. (der Ordner wird nicht automatisch erstellt. Er muss schon vorhanden sein.)
+Da das Programm Startparameter erwartet lässt es sich nur über die Komandozeile ausführen. Navigiere mit einem Terminal deiner Wahl in das Programmverzeichnis. Mit ```GraphRenderer2.exe -l test_data/default.json -c config.json -s output/ -a ``` wird die Anwendung gestartet, die Konfiguration und Graphen geladen und anschließend in den Ordner ```output``` gerendert. (der Ordner wird nicht automatisch erstellt. Er muss schon vorhanden sein.)
 
 ### Startparameter
 
@@ -37,7 +37,7 @@ Da das Programm Startparameter erwartet lässt es sich nur über die Komandozeil
 |```-help```|```-h```||Ruft die Hilfe auf.|
 |```-load```|```-l```|```<Pfad zum Graph>```|Übergibt den Pfad zur Graphen Datei.|
 |```-config```|```-c```|```<Pfad zur Konfiguration>```|Übergibt die Konfigurationsdatei. Optional, wenn nichts angegeben wird wird standartmäßig ```config.json``` geladen.|
-|```-automatic```|```-a```||Verzichtet auf alle Nutzereingaben. So kann das Programm automatisch ausgeführt und nur über die Startparameter gesteuert werden.|
+|```-automatic```|```-a```||Verzichtet auf alle Nutzereingaben. So kann das Programm automatisch ausgeführt und nur über die Startparameter gesteuert werden. (**Achtung:** dieser Parameter sollte als letztes angestellt werden. Andernfalls führt er zu einen Fehler in der Ausführung. Der Bug ist bekannt.)|
 |```-save```|```-s```| ```<Pfad zum Ausgabeordner>``` |Gibt den Ausgabeordner innerhalb des Programverzeichnisses an.|
 
 ## Konfiguration
@@ -98,6 +98,7 @@ Allein aus den OSM Daten kann noch keine OGM generiert werden. Um Kontrolle übe
 
 - Zu hohe Auflösungen (kleine Pixelbreiten) in Verbindung mit großen subchunks führen zu einen ```OutOfMemoryError```. Das ist eine Limitierung der Zeichenbibliothek allerdings bei realistischen Auflößungen kein Problem.
 - Diagonale Wege werden an der Fügestelle zwischen zwei Subchunks nicht korrekt dargestellt (siehe unten). Das liegt and der Art wie diese aktuell gezeichnet werden. Eine mögliche Lösung wäre das zeichnen von Kreuzen anstatt von Kreisen. 
+- Die Reinfolge der Parameter kann nicht beliebig sein. Bestimmte Kombinationen funktionieren nicht. (Das oben genannte Befehl funktioniert.)
 
 ![Fehler an der Subchunkgrenze](Fügestelle.PNG)
 
