@@ -8,8 +8,9 @@
       <Unit0>
         <Filename Value="GraphRenderer2.lpr"/>
         <IsPartOfProject Value="True"/>
-        <TopLine Value="25"/>
-        <CursorPos X="165" Y="118"/>
+        <IsVisibleTab Value="True"/>
+        <TopLine Value="91"/>
+        <CursorPos X="125" Y="122"/>
         <UsageCount Value="214"/>
         <Loaded Value="True"/>
       </Unit0>
@@ -43,9 +44,8 @@
       <Unit4>
         <Filename Value="unit_graphmanager.pas"/>
         <IsPartOfProject Value="True"/>
-        <IsVisibleTab Value="True"/>
         <EditorIndex Value="2"/>
-        <TopLine Value="140"/>
+        <TopLine Value="163"/>
         <CursorPos X="33" Y="72"/>
         <UsageCount Value="44"/>
         <Loaded Value="True"/>
@@ -199,7 +199,7 @@
     </JumpHistory>
     <RunParams>
       <FormatVersion Value="2"/>
-      <Modes Count="2" ActiveMode="loadFile">
+      <Modes Count="2" ActiveMode="default">
         <Mode0 Name="default"/>
         <Mode1 Name="loadFile">
           <local>
