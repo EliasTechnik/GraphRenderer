@@ -199,7 +199,7 @@
     </JumpHistory>
     <RunParams>
       <FormatVersion Value="2"/>
-      <Modes Count="2" ActiveMode="default">
+      <Modes Count="2" ActiveMode="loadFile">
         <Mode0 Name="default"/>
         <Mode1 Name="loadFile">
           <local>
