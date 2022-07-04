@@ -48,10 +48,7 @@ type tTangentPlane=record
      argument:double; //c (or radius^2)
 end;
 
-//function gpstosphere(gps:twgs84; r:double):tsphere;  //converts WGS84 to Spherical
 function gpsto3d(gps:twgs84;params:twgs84params):t3d;  //converts WGS84 to sphere based on the elipsoid
-//function sphereTo3d(p:tsphere):t3d;                                 //converts Spherical to 3d Carthesian
-//function gpsTo3d(gps:twgs84; r:double):t3d;          //converts WGS84 to 3d Carthesian
 function get3dOnPlane(ray:tray; plane:ttangentplane):t3d;                     //projects ray on plane and returns Intersection with plane
 function genPlane(p:t3d):tTangentPlane;                                       //generates Tangential Plane at Point p (It assumes that the Ball has its center at (0,0,0)
 function invertPoint(p:tsphere):tsphere;                            //invertiert p
@@ -122,16 +119,6 @@ end;
 
 implementation
 
-{
-function gpstosphere(gps: twgs84; r: double): tsphere;
-begin
-  result.azimuthalangle:=gps.lon;
-  result.polarangle:=90-gps.lat;
-  result.radius:=r;
-  //Writeln('gpsToSphere: Azimuth: '+floattostr(result.azimuthalangle)
-  //+'° Polar: '+floattostr(result.polarangle)+'° r: '+floattostr(result.radius));
-end;
-}
 function gpsto3d(gps: twgs84; params: twgs84params): t3d;
 var n:double;
 begin
@@ -140,26 +127,6 @@ begin
   result.y:=n*cos(degtorad(gps.lat))*sin(degtorad(gps.lon));
   result.z:=(n*(1-params.eccentricity_square))*sin(degtorad(gps.lat));
 end;
-{
-function sphereTo3d(p: tsphere): t3d;
-begin
-  //Writeln('sphereTo3d: Polar: '+floattostr(p.polarangle)
-  //+'° Azimuth: '+floattostr(p.azimuthalangle)+'° r: '+floattostr(p.radius));
-  result.x:=p.radius*cos(p.azimuthalangle)*sin(p.polarangle);
-  result.y:=p.radius*sin(p.azimuthalangle)*sin(p.polarangle);
-  result.z:=p.radius*cos(p.polarangle);
-  //result.x:=p.radius*cos(p.azimuthalangle)*cos(p.polarangle);
-  //result.y:=p.radius*cos(p.azimuthalangle)*sin(p.polarangle);
-  //result.z:=p.radius*sin(p.azimuthalangle);
-  //Writeln('sphereTo3d: ('+floattostr(result.x)+'|'+floattostr(result.y)+'|'+floattostr(result.z)+')');
-end;
-}
-{
-function gpsTo3d(gps: twgs84; r: double): t3d;
-begin
-  result:=sphereto3d(gpstosphere(gps,r));
-end;
-}
 
 function get3dOnPlane(ray: tray; plane: ttangentplane): t3d;
 var t:double;

@@ -66,10 +66,10 @@ begin
   ray:=getray(base,gpsto3d(gps,wgs84));
   map_corners[3]:=get3donplane(ray,plane);      //south-west
 
-  Writeln('# The Plane NW corners are at ('+floattostr(map_corners[0].x)+'|'+floattostr(map_corners[0].y)+'|'+floattostr(map_corners[0].z)+')');
-  Writeln('# The Plane NE corners are at ('+floattostr(map_corners[1].x)+'|'+floattostr(map_corners[1].y)+'|'+floattostr(map_corners[1].z)+')');
-  Writeln('# The Plane SE corners are at ('+floattostr(map_corners[2].x)+'|'+floattostr(map_corners[2].y)+'|'+floattostr(map_corners[2].z)+')');
-  Writeln('# The Plane SW corners are at ('+floattostr(map_corners[3].x)+'|'+floattostr(map_corners[3].y)+'|'+floattostr(map_corners[3].z)+')');
+  Writeln('# The Plane NW corner are at ('+floattostr(map_corners[0].x)+'|'+floattostr(map_corners[0].y)+'|'+floattostr(map_corners[0].z)+')');
+  Writeln('# The Plane NE corner are at ('+floattostr(map_corners[1].x)+'|'+floattostr(map_corners[1].y)+'|'+floattostr(map_corners[1].z)+')');
+  Writeln('# The Plane SE corner are at ('+floattostr(map_corners[2].x)+'|'+floattostr(map_corners[2].y)+'|'+floattostr(map_corners[2].z)+')');
+  Writeln('# The Plane SW corner are at ('+floattostr(map_corners[3].x)+'|'+floattostr(map_corners[3].y)+'|'+floattostr(map_corners[3].z)+')');
 
   map_borders[0]:=getray(map_corners[0],map_corners[1]);   //north
   map_borders[1]:=getray(map_corners[1],map_corners[2]);   //east

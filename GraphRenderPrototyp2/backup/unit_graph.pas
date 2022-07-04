@@ -28,8 +28,8 @@ type tSphere=record
 end;
 
 type t2d=record
-     x:qword;
-     y:qword;
+     x:int64;
+     y:int64;
 end;
 
 type t3D=record

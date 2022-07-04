@@ -119,7 +119,7 @@ begin
   writeln('Usage: ', extractfilename(ExeName), '   -l <filepath to json> or  -load <filepath to json> | to load Graph');
   writeln('Usage: ', extractfilename(ExeName), '   -c <filepath to config> or  -config <filepath to config> | to use custom cofigfile');
   writeln('Usage: ', extractfilename(ExeName), '   -a  or  -automatic   | the program runs without user input');
-  writeln('Usage: ', extractfilename(ExeName), '   -s <path to outputfolder> or  -save <path to outputfolder> | specifies thze folder where the subchunks are saved');
+  writeln('Usage: ', extractfilename(ExeName), '   -s <path to outputfolder> or  -save <path to outputfolder> | specifies the folder where the subchunks are saved');
 end;
 
 function TGraphRenderer.getParam(key: string; shortkey: string; out

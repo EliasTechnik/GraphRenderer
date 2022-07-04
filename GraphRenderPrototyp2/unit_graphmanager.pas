@@ -27,6 +27,7 @@ type
     subchunksize:double;
     mp:tmappainter;
     jconfig:tjsonnode;
+    configured:boolean; //true if the manager is configured
     procedure compute_edge(n,w,e,s:double);
     function get_baseunit: string;
     function get_pixelwidth: double;
@@ -39,6 +40,7 @@ type
     property pPixelwidth:double read get_pixelwidth;
     property pScalefactor:integer read get_scalefactor;
     property pBaseunit:string read get_baseunit;
+    function translateSingleCoordiante(gps:tWGS84):t2d;  //translates one wgs84 coordinate into 2D
 end;
 
 implementation
@@ -241,6 +243,11 @@ begin
 
     compute_edge(north,west,east,south);
 
+end;
+
+function tGraph.translateSingleCoordiante(gps: tWGS84): t2d;
+begin
+  if self.
 end;
 
 end.

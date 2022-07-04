@@ -45,7 +45,7 @@ begin
         prog.loadConfigFromJSON(v); //config.json
       end
       else begin
-        v:='config_km.json';
+        v:='config.json';
         WriteLn('# Using default config: "'+v+'"');
         prog.loadConfigFromJSON(v);
       end;
@@ -57,14 +57,20 @@ begin
           outputpath:='';
           Writeln('# No output path was given. Using current directory instead.');
       end;
-      if getParam('-l','-load',v) then begin
-        WriteLn('# Loading JSON Graph data from "'+v+'"');
-        prog.loadFromJSONFile(paramStr(2));
-        WriteLn('# Render OCM Chunks...');
-        prog.render(outputpath,'subchunk_');
+      if getParam('-t','-translate',v) then begin
+         Writeln('# Entered translation mode. Loading coordinates from: "'+v+'"');
+
       end
       else begin
-        WriteLn('# Error: No graph data was found.');
+        if getParam('-l','-load',v) then begin
+          WriteLn('# Loading JSON Graph data from "'+v+'"');
+          prog.loadFromJSONFile(v);
+          WriteLn('# Render OCM Chunks...');
+          prog.render(outputpath,'subchunk_');
+        end
+        else begin
+          WriteLn('# Error: No graph data was found.');
+        end;
       end;
     end;
   end
@@ -120,6 +126,7 @@ begin
   writeln('Usage: ', extractfilename(ExeName), '   -c <filepath to config> or  -config <filepath to config> | to use custom cofigfile');
   writeln('Usage: ', extractfilename(ExeName), '   -a  or  -automatic   | the program runs without user input');
   writeln('Usage: ', extractfilename(ExeName), '   -s <path to outputfolder> or  -save <path to outputfolder> | specifies the folder where the subchunks are saved');
+  writeln('Usage: ', extractfilename(ExeName), '   -t <path to WGS84 JSON file> or -translate <path to WGS84 JSON file> | a set of WGS84 cooordinates are loaded and converted and printed out on the console');
 end;
 
 function TGraphRenderer.getParam(key: string; shortkey: string; out
