@@ -21,6 +21,7 @@ type
     function wantHelp:boolean; //true if user wants help
     procedure displayHelp;     //prints help page
     function getParam(key:string;shortkey:string;out value:string):boolean; //true if param is given
+    procedure translateCoordiantes(coordinateFile:string; gm:tgraph);
   end;
 
 { TGraphRenderer }
@@ -32,6 +33,7 @@ var
   v:string;
   keepalive:boolean;
   outputpath:string;
+  j:tjsonnode;
 begin
   keepalive:=true;
   if paramcount>1 then begin
@@ -59,7 +61,7 @@ begin
       end;
       if getParam('-t','-translate',v) then begin
          Writeln('# Entered translation mode. Loading coordinates from: "'+v+'"');
-
+         translateCoordinates(v,prog);
       end
       else begin
         if getParam('-l','-load',v) then begin
@@ -140,6 +142,20 @@ begin
        if (i+1)<=paramcount then value:=ParamStr(i+1)
        else value:='';
     end;
+  end;
+end;
+
+procedure TGraphRenderer.translateCoordiantes(coordinateFile: string; gm: tgraph
+  );
+var j,ja:tjsonnode;
+    i:integer;
+begin
+  j:=tjsonnode.Create;
+  j.LoadFromFile(coordinateFile);
+  ja:=j.AsArray;
+  if gm.
+  for i:=0 to ja.Count-1 do begin
+
   end;
 end;
 

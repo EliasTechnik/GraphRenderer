@@ -8,8 +8,8 @@
       <Unit0>
         <Filename Value="GraphRenderer2.lpr"/>
         <IsPartOfProject Value="True"/>
-        <TopLine Value="39"/>
-        <CursorPos X="34" Y="67"/>
+        <TopLine Value="116"/>
+        <CursorPos X="9" Y="156"/>
         <UsageCount Value="214"/>
         <Loaded Value="True"/>
       </Unit0>
@@ -26,8 +26,10 @@
       <Unit2>
         <Filename Value="unit_graph.pas"/>
         <IsPartOfProject Value="True"/>
+        <IsVisibleTab Value="True"/>
         <EditorIndex Value="1"/>
-        <CursorPos Y="50"/>
+        <TopLine Value="295"/>
+        <CursorPos X="163" Y="310"/>
         <UsageCount Value="214"/>
         <Loaded Value="True"/>
       </Unit2>
@@ -37,17 +39,16 @@
         <EditorIndex Value="4"/>
         <TopLine Value="273"/>
         <CursorPos X="40" Y="308"/>
-        <UsageCount Value="97"/>
+        <UsageCount Value="99"/>
         <Loaded Value="True"/>
       </Unit3>
       <Unit4>
         <Filename Value="unit_graphmanager.pas"/>
         <IsPartOfProject Value="True"/>
-        <IsVisibleTab Value="True"/>
         <EditorIndex Value="2"/>
-        <TopLine Value="127"/>
-        <CursorPos X="75" Y="137"/>
-        <UsageCount Value="59"/>
+        <TopLine Value="211"/>
+        <CursorPos X="28" Y="261"/>
+        <UsageCount Value="61"/>
         <Loaded Value="True"/>
       </Unit4>
       <Unit5>
@@ -77,124 +78,124 @@
     </Units>
     <JumpHistory Count="30" HistoryIndex="29">
       <Position1>
-        <Filename Value="unit_graphmanager.pas"/>
-        <Caret Line="61" Column="37" TopLine="42"/>
+        <Filename Value="unit_paint.pas"/>
+        <Caret Line="205" Column="19" TopLine="188"/>
       </Position1>
       <Position2>
         <Filename Value="unit_paint.pas"/>
-        <Caret Line="217" Column="28" TopLine="191"/>
+        <Caret Line="203" Column="22" TopLine="183"/>
       </Position2>
       <Position3>
         <Filename Value="unit_paint.pas"/>
-        <Caret Line="205" Column="19" TopLine="188"/>
+        <Caret Line="207" Column="23" TopLine="185"/>
       </Position3>
       <Position4>
         <Filename Value="unit_paint.pas"/>
-        <Caret Line="203" Column="22" TopLine="183"/>
+        <Caret Line="206" Column="24" TopLine="186"/>
       </Position4>
       <Position5>
         <Filename Value="unit_paint.pas"/>
-        <Caret Line="207" Column="23" TopLine="185"/>
+        <Caret Line="216" Column="47" TopLine="185"/>
       </Position5>
       <Position6>
         <Filename Value="unit_paint.pas"/>
-        <Caret Line="206" Column="24" TopLine="186"/>
+        <Caret Line="219" Column="61" TopLine="199"/>
       </Position6>
       <Position7>
         <Filename Value="unit_paint.pas"/>
-        <Caret Line="216" Column="47" TopLine="185"/>
+        <Caret Line="224" Column="79" TopLine="199"/>
       </Position7>
       <Position8>
         <Filename Value="unit_paint.pas"/>
-        <Caret Line="219" Column="61" TopLine="199"/>
+        <Caret Line="219" Column="92" TopLine="192"/>
       </Position8>
       <Position9>
         <Filename Value="unit_paint.pas"/>
-        <Caret Line="224" Column="79" TopLine="199"/>
+        <Caret Line="220" Column="27" TopLine="192"/>
       </Position9>
       <Position10>
         <Filename Value="unit_paint.pas"/>
-        <Caret Line="219" Column="92" TopLine="192"/>
+        <Caret Line="216" Column="93" TopLine="195"/>
       </Position10>
       <Position11>
         <Filename Value="unit_paint.pas"/>
-        <Caret Line="220" Column="27" TopLine="192"/>
+        <Caret Line="94" Column="22" TopLine="73"/>
       </Position11>
       <Position12>
         <Filename Value="unit_paint.pas"/>
-        <Caret Line="216" Column="93" TopLine="195"/>
+        <Caret Line="224" Column="41" TopLine="203"/>
       </Position12>
       <Position13>
         <Filename Value="unit_paint.pas"/>
-        <Caret Line="94" Column="22" TopLine="73"/>
+        <Caret Line="206" Column="213" TopLine="178"/>
       </Position13>
       <Position14>
         <Filename Value="unit_paint.pas"/>
-        <Caret Line="224" Column="41" TopLine="203"/>
+        <Caret Line="288" Column="37" TopLine="252"/>
       </Position14>
       <Position15>
         <Filename Value="unit_paint.pas"/>
-        <Caret Line="206" Column="213" TopLine="178"/>
+        <Caret Line="114" Column="104" TopLine="79"/>
       </Position15>
       <Position16>
         <Filename Value="unit_paint.pas"/>
-        <Caret Line="288" Column="37" TopLine="252"/>
+        <Caret Line="94" Column="7" TopLine="67"/>
       </Position16>
       <Position17>
         <Filename Value="unit_paint.pas"/>
-        <Caret Line="114" Column="104" TopLine="79"/>
+        <Caret Line="29" Column="40"/>
       </Position17>
       <Position18>
-        <Filename Value="unit_paint.pas"/>
-        <Caret Line="94" Column="7" TopLine="67"/>
+        <Filename Value="unit_graphmanager.pas"/>
+        <Caret Line="175" Column="31" TopLine="151"/>
       </Position18>
       <Position19>
         <Filename Value="unit_paint.pas"/>
-        <Caret Line="29" Column="40"/>
+        <Caret Line="46" Column="62" TopLine="19"/>
       </Position19>
       <Position20>
         <Filename Value="unit_graphmanager.pas"/>
-        <Caret Line="175" Column="31" TopLine="151"/>
+        <Caret Line="169" Column="39" TopLine="149"/>
       </Position20>
       <Position21>
         <Filename Value="unit_paint.pas"/>
-        <Caret Line="46" Column="62" TopLine="19"/>
+        <Caret Line="301" Column="57" TopLine="271"/>
       </Position21>
       <Position22>
-        <Filename Value="unit_graphmanager.pas"/>
-        <Caret Line="169" Column="39" TopLine="149"/>
+        <Filename Value="unit_paint.pas"/>
+        <Caret Line="305" Column="28" TopLine="271"/>
       </Position22>
       <Position23>
         <Filename Value="unit_paint.pas"/>
-        <Caret Line="301" Column="57" TopLine="271"/>
+        <Caret Line="294" Column="17" TopLine="273"/>
       </Position23>
       <Position24>
         <Filename Value="unit_paint.pas"/>
-        <Caret Line="305" Column="28" TopLine="271"/>
+        <Caret Line="305" Column="16" TopLine="273"/>
       </Position24>
       <Position25>
         <Filename Value="unit_paint.pas"/>
-        <Caret Line="294" Column="17" TopLine="273"/>
+        <Caret Line="304" Column="55" TopLine="273"/>
       </Position25>
       <Position26>
-        <Filename Value="unit_paint.pas"/>
-        <Caret Line="305" Column="16" TopLine="273"/>
+        <Filename Value="unit_graphmanager.pas"/>
+        <Caret Line="169" Column="41" TopLine="155"/>
       </Position26>
       <Position27>
-        <Filename Value="unit_paint.pas"/>
-        <Caret Line="304" Column="55" TopLine="273"/>
+        <Filename Value="unit_graphmanager.pas"/>
+        <Caret Line="180" Column="50" TopLine="150"/>
       </Position27>
       <Position28>
         <Filename Value="unit_graphmanager.pas"/>
-        <Caret Line="169" Column="41" TopLine="155"/>
+        <Caret Line="42" Column="49" TopLine="6"/>
       </Position28>
       <Position29>
-        <Filename Value="unit_graphmanager.pas"/>
-        <Caret Line="180" Column="50" TopLine="150"/>
+        <Filename Value="GraphRenderer2.lpr"/>
+        <Caret Line="24" Column="68"/>
       </Position29>
       <Position30>
         <Filename Value="unit_graphmanager.pas"/>
-        <Caret Line="42" Column="49" TopLine="6"/>
+        <Caret Line="44" Column="54"/>
       </Position30>
     </JumpHistory>
     <RunParams>

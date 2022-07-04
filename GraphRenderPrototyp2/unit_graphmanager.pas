@@ -30,6 +30,7 @@ type
     configured:boolean; //true if the manager is configured
     procedure compute_edge(n,w,e,s:double);
     function get_baseunit: string;
+    function get_configured: boolean;
     function get_pixelwidth: double;
     function get_scalefactor: integer;
   public
@@ -40,6 +41,7 @@ type
     property pPixelwidth:double read get_pixelwidth;
     property pScalefactor:integer read get_scalefactor;
     property pBaseunit:string read get_baseunit;
+    property pConfigured:boolean read get_configured;
     function translateSingleCoordiante(gps:tWGS84):t2d;  //translates one wgs84 coordinate into 2D
 end;
 
@@ -85,6 +87,11 @@ begin
   result:=baseunit;
 end;
 
+function tGraph.get_configured: boolean;
+begin
+  result:=configured;
+end;
+
 function tGraph.get_pixelwidth: double;
 begin
   result:=pixelwidth;
@@ -98,6 +105,7 @@ end;
 constructor tGraph.create();
 begin
   ways:=tlist.Create;
+  configured:=false;
 end;
 
 procedure tGraph.loadFromJSONFile(path: string);
@@ -242,12 +250,15 @@ begin
     end;
 
     compute_edge(north,west,east,south);
-
+    configured:=true;
 end;
 
 function tGraph.translateSingleCoordiante(gps: tWGS84): t2d;
+var _3d:t3d;
+    _2d:t2d;
 begin
-  if self.
+  _3d:=gpsto3d(gps,self.wgs84);
+  _3d:=get3dOnPlane(getRay(
 end;
 
 end.
