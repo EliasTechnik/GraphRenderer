@@ -1,0 +1,28 @@
+{
+    "WGS84":{
+        "semi-major-axis":"6378137.0",
+        "semi-minor-axis":"6356752.314245",
+        "flattening":"298.257223563",
+        "baseunit":"m"
+    },
+    "plane":{
+        "origin":{
+            "WGS84":{
+                "lat":"50.9248529",
+                "lon":"13.3323959"
+            }
+        },
+        "edge":{
+            "WGS84":{
+                "north_lat":"50.9263889",
+                "south_lat":"50.9230556",
+                "west_lon":"13.326666666666666",
+                "east_lon":"13.336388888888889"
+            }
+        }
+    },
+    "output":{
+        "pixelwidth":"0.1",
+        "subchunksize":"15"
+    }
+}

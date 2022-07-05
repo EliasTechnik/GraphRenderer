@@ -61,7 +61,7 @@ begin
       end;
       if getParam('-t','-translate',v) then begin
          Writeln('# Entered translation mode. Loading coordinates from: "'+v+'"');
-         translateCoordinates(v,prog);
+         translateCoordiantes(v,prog);
       end
       else begin
         if getParam('-l','-load',v) then begin
@@ -153,10 +153,9 @@ begin
   j:=tjsonnode.Create;
   j.LoadFromFile(coordinateFile);
   ja:=j.AsArray;
-  if gm.
-  for i:=0 to ja.Count-1 do begin
+ // if gm.
+ // for i:=0 to ja.Count-1 do begin
 
-  end;
 end;
 
 var

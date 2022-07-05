@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
-  <Compiler Value="C:\lazarus\fpc\3.2.2\bin\x86_64-win64\fpc.exe" Date="1411537227"/>
+  <Compiler Value="C:\lazarus\fpc\3.2.2\bin\x86_64-win64\fpc.exe" Date="1420791944"/>
   <Params Value=" -MObjFPC -Scgi -O3 -OoREGVAR -l -vewnhibq -FuC:\lazarus\packager\units\x86_64-win64 -FuC:\lazarus\components\lazutils\lib\x86_64-win64 -FuC:\lazarus\components\freetype\lib\x86_64-win64 -FuC:\GitHubWorkfolder\GraphRenderer\GraphRenderPrototyp2\lib\bgrabitmap-11.5\bgrabitmap\ -FUC:\GitHubWorkfolder\GraphRenderer\GraphRenderPrototyp2\lib\bgrabitmap-11.5\bgrabitmap\lib4nogui\x86_64-win64\3.2.2\ -dBGRABITMAP_DONT_USE_LCL bgrabitmappack4nogui.pas"/>
 </CONFIG>
