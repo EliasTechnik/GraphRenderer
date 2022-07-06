@@ -210,14 +210,13 @@
       </Modes>
     </RunParams>
     <HistoryLists Count="3">
-      <List0 Name="WorkingDirectory" Type="File" Count="1"/>
-      <List1 Name="LaunchingApplication" Type="File" Count="1">
+      <List0 Name="LaunchingApplication" Type="File" Count="1">
         <Item1 Value="C:\WINDOWS\system32\cmd.exe /C ${TargetCmdLine}"/>
-      </List1>
-      <List2 Name="CommandLineParameters" Count="2">
+      </List0>
+      <List1 Name="CommandLineParameters" Count="2">
         <Item1 Value="-l test_data/default.json -c config_pytest.json -s output_pytest/"/>
         <Item2 Value="-l test_data/default.json -c config.json -s output/"/>
-      </List2>
+      </List1>
     </HistoryLists>
   </ProjectSession>
 </CONFIG>

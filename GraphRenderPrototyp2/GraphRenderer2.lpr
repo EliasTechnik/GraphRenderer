@@ -149,12 +149,23 @@ procedure TGraphRenderer.translateCoordiantes(coordinateFile: string; gm: tgraph
   );
 var j,ja:tjsonnode;
     i:integer;
+    gps:twgs84;
+    carthesian:t3d;
+    loc:t2d;
 begin
   j:=tjsonnode.Create;
   j.LoadFromFile(coordinateFile);
   ja:=j.AsArray;
- // if gm.
- // for i:=0 to ja.Count-1 do begin
+  if gm.pConfigured then begin
+    for i:=0 to ja.Count-1 do begin
+      DefaultFormatSettings.DecimalSeparator := '.';    //change to decimal point
+      gps.lat:=strtofloat(ja.Child(i).Find('lat').AsString);
+      gps.lon:=strtofloat(ja.Child(i).Find('lon').AsString);
+      carthesian:=gpsto3d(gps,gm.pWGS84Params);
+      //loc:=
+    end;
+  end;
+
 
 end;
 

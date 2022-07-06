@@ -29,10 +29,14 @@ type
     jconfig:tjsonnode;
     configured:boolean; //true if the manager is configured
     procedure compute_edge(n,w,e,s:double);
+    function get_base: t3d;
     function get_baseunit: string;
     function get_configured: boolean;
+    function get_origin: twgs84;
     function get_pixelwidth: double;
+    function get_plane: tTangentPlane;
     function get_scalefactor: integer;
+    function get_wgs84params: twgs84params;
   public
     constructor create();
     procedure loadFromJSONFile(path:string);
@@ -42,6 +46,10 @@ type
     property pScalefactor:integer read get_scalefactor;
     property pBaseunit:string read get_baseunit;
     property pConfigured:boolean read get_configured;
+    property pWGS84Params:twgs84params read get_wgs84params;
+    property pPLane:tTangentPlane read get_plane;
+    property pOrigin:twgs84 read get_origin;
+    property pBase:t3d read get_base;
     function translateSingleCoordiante(gps:tWGS84):t2d;  //translates one wgs84 coordinate into 2D
 end;
 
@@ -82,6 +90,11 @@ begin
 
 end;
 
+function tGraph.get_base: t3d;
+begin
+  result:=base;
+end;
+
 function tGraph.get_baseunit: string;
 begin
   result:=baseunit;
@@ -92,14 +105,29 @@ begin
   result:=configured;
 end;
 
+function tGraph.get_origin: twgs84;
+begin
+  result:=origin;
+end;
+
 function tGraph.get_pixelwidth: double;
 begin
   result:=pixelwidth;
 end;
 
+function tGraph.get_plane: tTangentPlane;
+begin
+  result:=plane;
+end;
+
 function tGraph.get_scalefactor: integer;
 begin
   result:=scalefactor;
+end;
+
+function tGraph.get_wgs84params: twgs84params;
+begin
+  result:=wgs84;
 end;
 
 constructor tGraph.create();

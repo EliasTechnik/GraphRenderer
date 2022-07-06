@@ -257,8 +257,8 @@ function tGraph.translateSingleCoordiante(gps: tWGS84): t2d;
 var _3d:t3d;
     _2d:t2d;
 begin
-  _3d:=gpsto3d(gps,self.wgs84);
-  _3d:=get3dOnPlane(getRay(
+  //_3d:=gpsto3d(gps,self.wgs84);
+  //_3d:=get3dOnPlane(getRay(
 end;
 
 end.
