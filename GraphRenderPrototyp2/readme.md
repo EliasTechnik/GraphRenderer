@@ -2,13 +2,13 @@
 
 ![Minimap](minimap.png)
 
-Das Programm GraphRenderer2 läd eine JSON Datei welche WGS84 Koordinaten, Wegrelationen, Wegbreiten und Wegbeschaffenheiten enhält. Über eine Tangentialeben werden die WGS84 Koordinaten zu einer planaren Occupancy Grid Map transformiert und diese, je nach Konfiguration als ein oder mehrere PNG Bilder abgespeichert.
+Das Programm GraphRenderer2 läd eine JSON Datei welche WGS84 Koordinaten, Wegrelationen, Wegbreiten und Wegbeschaffenheiten enhält. Über eine Tangentialebe werden die WGS84 Koordinaten zu einer planaren Occupancy Grid Map transformiert und diese, je nach Konfiguration als ein oder mehrere PNG Bilder abgespeichert.
 
 ## Funktionsweise
 
 Die Knoten des Graphen enthalten GPS Koordienaten welche im WGS84 Koordinatensystem arbeiten. Das WGS84 kodiert in Längengrad und Breitengrad auf der Oberfläche eines Ellipsoiden welcher der Erde angenähert ist.
 
-1. Die WGS84 Koordinaten werden in Karthesische Koordinaten überführt. Hierbei wird der WGS84 Erdellipsoid berückischtigt. Eine Höhenkorrektur findet nicht statt da die benötigten Informationen nicht in den OSM Daten enthalten sind. 
+1. Die WGS84 Koordinaten werden in Karthesische Koordinaten überführt. Hierbei wird der WGS84 Erdellipsoid berückischtigt. Eine Höhenkorrektur findet nicht statt da die benötigten Informationen nicht in den OSM Daten enthalten sind.
 
 2. Der Punkt ```origin``` an dem die Tangentialebene später aufliegt (Liegt aktuell ungefähr mittig im Clemens-Winkler-Bau) wird invertiert zum Punkt ```base```. Dadurch liegen ```base```, ```M(0,0,0)``` (Erdmittelpunkt) und ```origin``` auf einer Geraden.
 
@@ -20,7 +20,7 @@ Die Knoten des Graphen enthalten GPS Koordienaten welche im WGS84 Koordinatensys
 
 7. Die 2d Koordinaten werden auf einen Canvas überführt und mittels über Linien zu Wegen verknüpft. Hier fließen Wegbreite und Kosten mit ein. Das unterteilen in Subchunks findet noch vor dem eigentlichen zeichnen statt. Dadurch bleibt die Möglichkeit einer späteren Speicheroptimierung offen.
 
-8. Alle Subchunks werden gespeichert (aktuell als PNG). Die Koordinatenoffsets der Subchunks und die zum generieren verwendete Konfiguration wird als JSON im ausgabeordner gespeichert und das Programm beendet.
+8. Alle Subchunks werden gespeichert (aktuell als PNG). Die Koordinatenoffsets der Subchunks und die zum generieren verwendete Konfiguration wird als JSON im Ausgabeordner gespeichert und das Programm beendet.
 
 ## Kompilieren
 
